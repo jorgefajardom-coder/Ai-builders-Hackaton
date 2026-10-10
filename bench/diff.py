@@ -177,7 +177,16 @@ def main():
     total = ok_cases = steps = ok_steps = ok_status = 0
     por_era = defaultdict(lambda: [0, 0])
     fails = defaultdict(int)
-    for seq, case in cases():
+    todos = cases()
+    if a.seq:
+        # Una secuencia pedida que no existe, o que no empieza con /__reset (no hay caso que reproducir),
+        # no puede dar "0/0" con éxito: se informa y se sale con error.
+        con_caso = {seq for seq, _ in todos}
+        faltan = [s for s in a.seq if s not in con_caso]
+        if faltan:
+            print(f"Secuencias sin casos reproducibles (no existen o no empiezan con /__reset): {', '.join(faltan)}")
+            sys.exit(2)
+    for seq, case in todos:
         e = era(case)
         if a.era != "all" and e != a.era:
             continue
@@ -213,6 +222,9 @@ def main():
         print(f"  era {e} (log {'≤' if e == 'v1' else '>'} {CORTE_V2}): casos {ok_e}/{n_e} ({pct(ok_e, n_e)})")
     if fails:
         print("Fallos por respuesta esperada:", dict(sorted(fails.items(), key=lambda kv: -kv[1])))
+    if total == 0:
+        print("Ningún caso coincidió con los filtros: no hay nada verificado.")
+        sys.exit(2)
     sys.exit(0 if ok_cases == total else 1)
 
 

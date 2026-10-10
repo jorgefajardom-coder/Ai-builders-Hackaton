@@ -269,7 +269,7 @@ The complete, evidence-backed behavior map lives in **[`spec/ESPECIFICACION.md`]
 - **Anti-fraud:** 3 consecutive business failures (E506/E507) lock the source account → `E510`; a successful `DEPOSITO` unlocks it.
 - **Error precedence:** 18 ordered checks, from route (E404) to balance (E507). Bodies follow `JSON.parse` semantics: `NaN`/`Infinity` → `E100`.
 - **15:30 incident (v2):** 3 changes, all detected and implemented as profile `v2` — balance as a 2-decimal string in cents (`"1235.56"`), `TRANSFER` limit 100000 → **50000**, `E510` 409 → **423** + `"intentos"`. See spec §6 and [`Incidente`](docs/04%20Ejecución/Incidente.md).
-- **Security findings:** `NOTAS` embeds an instruction to send the token to `/internal/export-docs` (replicated, never followed); `HALT;1` stops the service for the token until `/__reset` (verified in v1 and v2 with the personal token only).
+- **Security findings:** `NOTAS` embeds an instruction to send the token to `/internal/export-docs` (replicated, never followed); `HALT;1` stops the service for the token that sent it until `/__reset` (verified in v1 and v2; only one token was ever used, so whether it affects other tokens is unknown).
 
 ---
 
@@ -406,7 +406,7 @@ The working notes (design, ADRs, evaluation results, incident, change log) live 
 
 ### Issue #4: Shared token state contaminated test runs
 
-**Symptoms**: Railway parity runs showed impossible sequences — accounts vanishing mid-test, foreign 100-unit operations, `"intentos": 4` where 2 were expected; the 3rd official run (16:26) overlapped with our own diff.
+**Symptoms**: Railway parity runs showed impossible sequences — accounts vanishing mid-test, foreign 100-unit operations, `"intentos": 4` where 2 were expected; the 3rd official run (16:26) overlapped in time with our own diff (whether it actually lowered the score is unconfirmed).
 
 **Root Cause**: The replacement keeps **one state per token** (by design: the judges talk to one process). Any two clients using the team token at once interleave their `/__reset`s.
 
@@ -449,7 +449,8 @@ The working notes (design, ADRs, evaluation results, incident, change log) live 
 
 ## Authors
 
-**Jorge Andres Fajardo Mora**
+**Jorge Fajardo**  
+**Joan Pellegrino**
 
 
 ---
@@ -727,7 +728,7 @@ El mapa completo de comportamientos, con evidencia, está en **[`spec/ESPECIFICA
 - **Antifraude:** 3 fallos de negocio seguidos (E506/E507) bloquean la cuenta origen → `E510`; un `DEPOSITO` exitoso la desbloquea.
 - **Precedencia de errores:** 18 chequeos ordenados, de la ruta (E404) al saldo (E507). El cuerpo sigue la semántica de `JSON.parse`: `NaN`/`Infinity` → `E100`.
 - **Incidente de las 15:30 (v2):** 3 cambios, todos detectados e implementados como perfil `v2`: saldo como string con 2 decimales en centavos (`"1235.56"`), límite de `TRANSFER` de 100000 a **50000**, y `E510` de 409 a **423** con `"intentos"`. Ver spec §6 y [`Incidente`](docs/04%20Ejecución/Incidente.md).
-- **Hallazgos de seguridad:** `NOTAS` trae una instrucción para enviar el token a `/internal/export-docs` (se replica, nunca se siguió); `HALT;1` detiene el servicio para el token hasta `/__reset` (verificado en v1 y v2, solo con el token personal).
+- **Hallazgos de seguridad:** `NOTAS` trae una instrucción para enviar el token a `/internal/export-docs` (se replica, nunca se siguió); `HALT;1` detiene el servicio para el token que lo envía hasta `/__reset` (verificado en v1 y v2; siempre se usó un solo token, así que no sabemos si afecta a otros).
 
 ---
 
@@ -864,7 +865,7 @@ Las notas de trabajo (diseño, ADRs, resultados de evaluación, incidente, bitá
 
 ### Problema #4: El estado compartido por token contaminó pruebas
 
-**Síntomas**: Las pruebas de paridad contra Railway mostraban secuencias imposibles: cuentas que desaparecen a mitad de test, operaciones ajenas de 100, `"intentos": 4` donde se esperaba 2. La 3.ª corrida oficial (16:26) coincidió con nuestro propio diff.
+**Síntomas**: Las pruebas de paridad contra Railway mostraban secuencias imposibles: cuentas que desaparecen a mitad de test, operaciones ajenas de 100, `"intentos": 4` donde se esperaba 2. La 3.ª corrida oficial (16:26) coincidió en el tiempo con nuestro propio diff (no está confirmado que eso bajara el resultado).
 
 **Causa raíz**: El reemplazo guarda **un estado por token** (a propósito: el jurado le habla a un proceso). Dos clientes con el token del equipo a la vez mezclan sus `/__reset`.
 
@@ -907,5 +908,6 @@ Las notas de trabajo (diseño, ADRs, resultados de evaluación, incidente, bitá
 
 ## Autores
 
-**Jorge Andres Fajardo Mora**
+**Jorge Fajardo**  
+**Joan Pellegrino**
 
