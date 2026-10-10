@@ -19,6 +19,7 @@ _Rutas, métodos, autenticación, forma del cuerpo y límites._
 | EN-05 | Límite de cuerpo: **8192 bytes crudos**. 8192 → se procesa; ≥8193 → `413 {"error":"E101","mensaje":"cuerpo demasiado grande"}` (medido con relleno de espacios, no depende de `m`) | 1398, 1401, 1404, 1405, 1384 | confirmado |
 | EN-06 | Orden de entrada: ruta → auth → tamaño → JSON (8193 bytes sin token → 401; 8193 bytes de JSON inválido → 413) | 1406, 1407, 1408 | probable |
 | EN-07 | Cuerpo que no es JSON válido (texto, vacío, sin cuerpo, JSON + basura) → `400 {"error":"E100","mensaje":"json inválido"}` | 1366, 1367, 1368, 1381 | confirmado |
+| EN-14 | Las constantes no JSON `NaN`, `Infinity` y `-Infinity` (en `m`, en una clave extra ignorada o como cuerpo raíz) → `400 E100 "json inválido"` (semántica de `JSON.parse`); el string `"NaN"` es válido | 4121–4125 | confirmado |
 | EN-08 | JSON válido pero sin `m` string (objeto vacío, `M` mayúscula, `m` número/null/array, cuerpo array/string/null) → `400 {"error":"E102","mensaje":"falta m"}` | 1369–1373, 1375–1377 | confirmado |
 | EN-09 | `m` = `""` pasa E102 y da `E103` | 1282 | probable |
 | EN-10 | Claves extra se ignoran; el `Content-Type` de la petición no importa (text/plain o ausente se parsea igual) | 1374, 1378, 1379 | confirmado |

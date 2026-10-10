@@ -45,11 +45,17 @@ def etapa_tamano(ctx):
         raise DomainError("E101")
 
 
+def _rechazar_constante(nombre):
+    """NaN, Infinity y -Infinity no son JSON: JSON.parse del original los rechaza (E100); json.loads los acepta."""
+    raise ValueError(f"constante no JSON: {nombre}")
+
+
 def etapa_json(ctx):
     limite = sys.getrecursionlimit()
     sys.setrecursionlimit(max(limite, _PARSE_RECURSION))
     try:
-        ctx["data"] = json.loads(ctx["raw"].decode("utf-8"))   # clave duplicada: gana la última (como el original)
+        # clave duplicada: gana la última (como el original); constantes no finitas → E100
+        ctx["data"] = json.loads(ctx["raw"].decode("utf-8"), parse_constant=_rechazar_constante)
     except (ValueError, UnicodeDecodeError, RecursionError):
         raise DomainError("E100")
     finally:
