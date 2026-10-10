@@ -349,6 +349,10 @@ python exp01_entrada.py     # every request is appended to ../experimentos.jsonl
 
 > ⚠️ Each token has 10 req/s and 8 000 req/day. The prober paces itself; sweeps stop at the first valid value.
 
+### Obsidian vault
+
+The working notes (design, ADRs, evaluation results, incident, change log) live in an Obsidian vault at [`docs/`](docs). In Obsidian: **Open folder as vault → select `docs/`** (not the repo root) and start at **`00 Inicio`**. The same notes are on the docs site.
+
 ---
 
 ## Timeline
@@ -802,6 +806,10 @@ python exp01_entrada.py     # cada request se agrega a ../experimentos.jsonl
 ```
 
 > ⚠️ Cada token tiene 10 req/s y 8.000 req/día. El prober regula su propio ritmo y los barridos paran en el primer valor válido.
+
+### Vault de Obsidian
+
+Las notas de trabajo (diseño, ADRs, resultados de evaluación, incidente, bitácora) están en un vault de Obsidian en [`docs/`](docs). En Obsidian: **Abrir carpeta como vault → seleccionar `docs/`** (no la raíz del repo) y empezar por **`00 Inicio`**. Las mismas notas están en el sitio de documentación.
 
 ---
 
