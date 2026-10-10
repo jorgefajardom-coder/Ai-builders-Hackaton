@@ -5,11 +5,11 @@ entrega: "20:00"
 # Entrega — 20:00
 
 - [x] **Repo público** — github.com/jorgefajardom-coder/Ai-builders-Hackaton (público)
-- [x] **Servicio desplegado** y probado desde una máquina/red distinta — Railway (URL abajo); las 3 corridas oficiales de `/evento` (87, 87, 90) lo probaron desde la red del jurado
+- [x] **Servicio desplegado** y probado desde una máquina/red distinta — Railway (URL abajo)
 - [x] Entrypoint claro y documentado en el README — sección *Entrypoint Contract* / *Contrato del Entrypoint* y bloque de abajo
-- [x] Corre contra el set de evaluaciones oculto (formato de entrada/salida verificado) — 90/100 en la 3.ª corrida oficial ([[Plan de evaluación]])
+- [x] Corre contra el set de evaluaciones oculto (formato de entrada/salida verificado)
 - [x] **Video de 2 minutos** → https://youtu.be/oBzgzodlFgU
-- [x] Resultados del [[Plan de evaluación]] actualizados — corridas oficiales y paridad local por era
+- [x] Resultados del [[Plan de evaluación]] actualizados — paridad local por era
 - [ ] **Transcripts** de las sesiones con agentes → [[Reglas#Transcripts]]
 - [x] Sin secretos en el repo; `.env.example` presente — `.env` en `.gitignore`; escaneo del repo sin tokens
 - [x] *(Reto 2)* Especificación — `spec/ESPECIFICACION.md`
