@@ -133,51 +133,48 @@ We are graded on three outputs:
 ### Component Diagram
 
 ```mermaid
-graph TB
-    subgraph BENCH["A · Discovery Bench  ·  local, own scripts"]
-        direction LR
-        EXP["Experiments\nexp01…expNN.py\nhypothesis per request"]
-        PRB["prober.py\nreset → sequence → record\nrate-limit 10 req/s · retries"]
-        FIT["Model fitting\nfit_*.py · control_model.py"]
+graph LR
+    subgraph BENCH["A · Discovery bench · local"]
+        direction TB
+        EXP["Experiments<br/>exp01…expNN.py<br/>one hypothesis per request"]
+        PRB["prober.py<br/>reset → sequence → record<br/>10 req/s · retries"]
         EXP --> PRB
     end
 
-    ORIG[("Original service\nRailway · per-token state")]
+    ORIG[("Original service<br/>per-token state")]
 
-    subgraph KNOW["Knowledge  ·  versioned in git"]
-        direction LR
-        LOG[("experimentos.jsonl\nofficial log format")]
-        SPEC["ESPECIFICACION.md\nID · behavior · evidence · confidence"]
-        LOG --> SPEC
+    subgraph KNOW["Knowledge · versioned in git"]
+        direction TB
+        LOG[("experimentos.jsonl<br/>official log")]
+        FIT["Model fitting<br/>+ predictive validation"]
+        SPEC["ESPECIFICACION.md<br/>ID · behavior · evidence · confidence"]
+        LOG --> FIT --> SPEC
     end
 
-    subgraph REPL["B · Replacement  ·  deployed, 1 process"]
-        direction LR
-        GW["Catch-all ASGI\nno framework routing"]
-        PIPE["Validation pipeline\nroute → auth → integrity → syntax\n→ existence → business"]
-        CMD["Command handlers\nALTA · CONSULTA · DEPOSITO\nTRANSFER · ANULA · PING"]
-        ST[("In-memory state\nsnapshot · /__reset")]
-        GW --> PIPE --> CMD
-        CMD <--> ST
+    subgraph REPL["B · Replacement · deployed, 1 process"]
+        direction TB
+        GW["Catch-all ASGI<br/>no framework routing"]
+        PIPE["Validation pipeline<br/>route → auth → integrity → syntax<br/>→ existence → business"]
+        CMD["Command handlers<br/>ALTA · CONSULTA · DEPOSITO<br/>TRANSFER · ANULA · PING"]
+        ST[("In-memory state<br/>snapshot · /__reset")]
+        GW --> PIPE --> CMD --> ST
     end
 
-    DIFF["diff.py\nreplay corpus · judge comparator\n→ parity %"]
-    JUDGE["Hidden test set\n100 tests · Bearer team token"]
+    DIFF["diff.py<br/>replay · judges' comparator<br/>→ parity %"]
+    JUDGE["Hidden test set<br/>100 tests · team token"]
 
-    PRB -->|"HTTPS · personal token"| ORIG
+    PRB -->|HTTPS| ORIG
     PRB --> LOG
-    LOG --> FIT
-    FIT --> SPEC
-    SPEC -. guides .-> CMD
+    SPEC -.->|guides| CMD
     LOG --> DIFF
-    DIFF -->|HTTP| GW
-    JUDGE -->|HTTPS| GW
+    DIFF --> GW
+    JUDGE --> GW
 
     style ORIG  fill:#8b0000,stroke:#8b0000,color:#fff
-    style PRB   fill:#378ADD,stroke:#042C53,color:#fff
     style EXP   fill:#378ADD,stroke:#042C53,color:#fff
-    style FIT   fill:#534AB7,stroke:#26215C,color:#fff
+    style PRB   fill:#378ADD,stroke:#042C53,color:#fff
     style LOG   fill:#4a4a4a,stroke:#4a4a4a,color:#fff
+    style FIT   fill:#534AB7,stroke:#26215C,color:#fff
     style SPEC  fill:#534AB7,stroke:#26215C,color:#fff
     style GW    fill:#1D9E75,stroke:#085041,color:#fff
     style PIPE  fill:#1D9E75,stroke:#085041,color:#fff
@@ -602,51 +599,48 @@ Nos evalúan tres salidas:
 ### Diagrama de Componentes
 
 ```mermaid
-graph TB
-    subgraph BENCH["A · Banco de descubrimiento  ·  local, scripts propios"]
-        direction LR
-        EXP["Experimentos\nexp01…expNN.py\nhipótesis por request"]
-        PRB["prober.py\nreset → secuencia → graba\n10 req/s · reintentos"]
-        FIT["Ajuste de modelos\nfit_*.py · control_model.py"]
+graph LR
+    subgraph BENCH["A · Banco de descubrimiento · local"]
+        direction TB
+        EXP["Experimentos<br/>exp01…expNN.py<br/>una hipótesis por request"]
+        PRB["prober.py<br/>reset → secuencia → graba<br/>10 req/s · reintentos"]
         EXP --> PRB
     end
 
-    ORIG[("Servicio original\nRailway · estado por token")]
+    ORIG[("Servicio original<br/>estado por token")]
 
-    subgraph KNOW["Conocimiento  ·  versionado en git"]
-        direction LR
-        LOG[("experimentos.jsonl\nformato oficial")]
-        SPEC["ESPECIFICACION.md\nID · comportamiento · evidencia · confianza"]
-        LOG --> SPEC
+    subgraph KNOW["Conocimiento · versionado en git"]
+        direction TB
+        LOG[("experimentos.jsonl<br/>log oficial")]
+        FIT["Ajuste de modelos<br/>+ validación predictiva"]
+        SPEC["ESPECIFICACION.md<br/>ID · comportamiento · evidencia · confianza"]
+        LOG --> FIT --> SPEC
     end
 
-    subgraph REPL["B · Reemplazo  ·  desplegado, 1 proceso"]
-        direction LR
-        GW["Catch-all ASGI\nsin routing de framework"]
-        PIPE["Pipeline de validación\nruta → auth → integridad → sintaxis\n→ existencia → negocio"]
-        CMD["Handlers de comandos\nALTA · CONSULTA · DEPOSITO\nTRANSFER · ANULA · PING"]
-        ST[("Estado en memoria\nsnapshot · /__reset")]
-        GW --> PIPE --> CMD
-        CMD <--> ST
+    subgraph REPL["B · Reemplazo · desplegado, 1 proceso"]
+        direction TB
+        GW["Catch-all ASGI<br/>sin routing de framework"]
+        PIPE["Pipeline de validación<br/>ruta → auth → integridad → sintaxis<br/>→ existencia → negocio"]
+        CMD["Handlers de comandos<br/>ALTA · CONSULTA · DEPOSITO<br/>TRANSFER · ANULA · PING"]
+        ST[("Estado en memoria<br/>snapshot · /__reset")]
+        GW --> PIPE --> CMD --> ST
     end
 
-    DIFF["diff.py\nreplay del corpus · comparador del jurado\n→ % paridad"]
-    JUDGE["Set oculto\n100 tests · Bearer token del equipo"]
+    DIFF["diff.py<br/>replay · comparador del jurado<br/>→ % paridad"]
+    JUDGE["Set oculto<br/>100 tests · token del equipo"]
 
-    PRB -->|"HTTPS · token personal"| ORIG
+    PRB -->|HTTPS| ORIG
     PRB --> LOG
-    LOG --> FIT
-    FIT --> SPEC
-    SPEC -. guía .-> CMD
+    SPEC -.->|guía| CMD
     LOG --> DIFF
-    DIFF -->|HTTP| GW
-    JUDGE -->|HTTPS| GW
+    DIFF --> GW
+    JUDGE --> GW
 
     style ORIG  fill:#8b0000,stroke:#8b0000,color:#fff
-    style PRB   fill:#378ADD,stroke:#042C53,color:#fff
     style EXP   fill:#378ADD,stroke:#042C53,color:#fff
-    style FIT   fill:#534AB7,stroke:#26215C,color:#fff
+    style PRB   fill:#378ADD,stroke:#042C53,color:#fff
     style LOG   fill:#4a4a4a,stroke:#4a4a4a,color:#fff
+    style FIT   fill:#534AB7,stroke:#26215C,color:#fff
     style SPEC  fill:#534AB7,stroke:#26215C,color:#fff
     style GW    fill:#1D9E75,stroke:#085041,color:#fff
     style PIPE  fill:#1D9E75,stroke:#085041,color:#fff

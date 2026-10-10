@@ -13,6 +13,7 @@ la página consulta site/version.json y se recarga sola cuando hay una versión 
 """
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -157,11 +158,23 @@ def build():
     data_tag = f'<script id="data" type="application/json">{payload}</script>'
     html = TEMPLATE.replace("__VERSION__", version).replace("<!--DATA-->", data_tag)
     OUT_DIR.mkdir(exist_ok=True)
-    (OUT_DIR / "index.html").write_text(html, encoding="utf-8")
-    (OUT_DIR / "version.json").write_text(json.dumps({"version": version, "generated": data["generated"]}),
-                                          encoding="utf-8")
-    (OUT_DIR / ".nojekyll").write_text("", encoding="utf-8")
+    write_atomic(OUT_DIR / "index.html", html)
+    write_atomic(OUT_DIR / "version.json", json.dumps({"version": version, "generated": data["generated"]}))
+    write_atomic(OUT_DIR / ".nojekyll", "")
     return version, data
+
+
+def write_atomic(path, text):
+    """Escribe a un temporal y lo renombra: nunca deja el archivo a medias si dos builds coinciden."""
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    for attempt in range(10):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            time.sleep(0.2 * (attempt + 1))
+    os.replace(tmp, path)
 
 
 def watched_mtimes():
@@ -182,6 +195,12 @@ def watched_mtimes():
 
 
 def main():
+    # La consola de Windows usa cp1252 por defecto; sin esto, imprimir "·" o tildes tumba el observador.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except AttributeError:
+            pass
     version, data = build()
     print(f"site/index.html generado · versión {version} · {len(data['docs'])} notas · "
           f"{data['exp']['total'] if data['exp'] else 0} experimentos")
@@ -193,8 +212,12 @@ def main():
             now = watched_mtimes()
             if now != last:
                 last = now
-                version, _ = build()
-                print(f"[{datetime.now():%H:%M:%S}] regenerado · versión {version}")
+                # Proceso nuevo en cada build: si cambia este mismo generador, se usa el código actual.
+                r = subprocess.run([sys.executable, __file__], cwd=ROOT, capture_output=True, text=True,
+                                   encoding="utf-8", errors="replace", env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+                msg = (r.stdout.strip() or r.stderr.strip().splitlines()[-1:] or ["?"])
+                msg = msg if isinstance(msg, str) else msg[0]
+                print(f"[{datetime.now():%H:%M:%S}] {'regenerado' if r.returncode == 0 else 'ERROR'} · {msg}", flush=True)
 
 
 TEMPLATE = r"""<!doctype html>
@@ -257,6 +280,14 @@ main{min-width:0;padding:28px 48px 80px;max-width:1100px}
 .callout.warning,.callout.important{border-left-color:var(--warn)} .callout.warning .ct,.callout.important .ct{color:var(--warn)}
 .callout.tip,.callout.note,.callout.abstract{border-left-color:var(--ok)} .callout.tip .ct,.callout.note .ct,.callout.abstract .ct{color:var(--ok)}
 .mermaid{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;text-align:center}
+/* Flujo animado: el trazo avanza del origen al destino y un "paquete" recorre cada conexión. */
+.mermaid .flow{stroke-dasharray:7 5;animation:flow 1.1s linear infinite}
+.mermaid .flow.dotted{stroke-dasharray:2 5}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.mermaid .packet{fill:var(--accent);stroke:var(--bg);stroke-width:1.5;filter:drop-shadow(0 0 3px var(--accent))}
+.flowctl{display:flex;justify-content:flex-end;gap:6px;margin:-4px 0 6px}
+@media (prefers-reduced-motion: reduce){.mermaid .flow{animation:none}.mermaid .packet{display:none}}
+body.noanim .mermaid .flow{animation:none} body.noanim .mermaid .packet{display:none}
 .meta{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 18px;font-family:var(--mono);font-size:12px;color:var(--muted)}
 .tag{background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:1px 7px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}
@@ -288,15 +319,19 @@ main{min-width:0;padding:28px 48px 80px;max-width:1100px}
   <main>
     <div class="topbar">
       <span><button class="btn menu" id="menu">☰ Menú</button> <span class="pill"><span class="dot" id="livedot"></span><span id="genat"></span></span></span>
-      <span><button class="btn" id="lang-es">ES</button> <button class="btn" id="lang-en">EN</button> <button class="btn" id="theme">◐ Tema</button></span>
+      <span><button class="btn on" id="anim" title="Animar el flujo de datos en los diagramas">⇢ Flujo</button> <button class="btn" id="lang-es">ES</button> <button class="btn" id="lang-en">EN</button> <button class="btn" id="theme">◐ Tema</button></span>
     </div>
     <article class="doc" id="content"></article>
   </main>
 </div>
 <!--DATA-->
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
-<script>
+<script type="module">
+// Mermaid 11 + layout ELK: enrutado ortogonal que evita que las aristas crucen nodos o se superpongan.
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.7/dist/mermaid-layout-elk.esm.min.mjs';
+mermaid.registerLayoutLoaders(elkLayouts);
+window.mermaid = mermaid;
 const D = JSON.parse(document.getElementById('data').textContent);
 const VERSION = document.querySelector('meta[name=doc-version]').content;
 let lang = 'es';
@@ -350,11 +385,98 @@ function fixLinks(root){
   });
 }
 
-function show(md, meta){
+const SVGNS = 'http://www.w3.org/2000/svg';
+let packetSeq = 0;
+
+// Convierte cada conexión en un flujo animado y le agrega un paquete que viaja origen → destino.
+// El retraso de cada paquete sigue el orden de las aristas en el diagrama, así se lee la secuencia.
+function animateFlows(root){
+  root.querySelectorAll('.mermaid svg').forEach(svg => {
+    const edges = [];
+    svg.querySelectorAll('path.flowchart-link, .edgePaths path, .edgePath path.path').forEach(p => { if (!edges.includes(p)) edges.push(p); });
+    // Diagramas de secuencia: los mensajes son <line> o <path>; se convierten a path para poder recorrerlos.
+    svg.querySelectorAll('line[class*="messageLine"]').forEach(l => {
+      const p = document.createElementNS(SVGNS, 'path');
+      p.setAttribute('d', `M${l.getAttribute('x1')},${l.getAttribute('y1')} L${l.getAttribute('x2')},${l.getAttribute('y2')}`);
+      p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'none');
+      l.parentNode.insertBefore(p, l.nextSibling);
+      l.classList.add('flow'); if (l.classList.contains('messageLine1')) l.classList.add('dotted');
+      edges.push(Object.assign(p, { _seq: true }));
+    });
+    svg.querySelectorAll('path[class*="messageLine"]').forEach(p => edges.push(p));
+    edges.forEach((p, i) => {
+      if (!p._seq) {
+        p.classList.add('flow');
+        const da = getComputedStyle(p).strokeDasharray;
+        if (p.classList.contains('edge-pattern-dotted') || p.classList.contains('messageLine1') || (da && da !== 'none' && parseFloat(da) <= 3)) p.classList.add('dotted');
+      }
+      let len = 0; try { len = p.getTotalLength(); } catch (e) {}
+      if (!len) return;
+      if (!p.id) p.id = 'flowpath-' + (++packetSeq);
+      const c = document.createElementNS(SVGNS, 'circle');
+      c.setAttribute('r', '4'); c.setAttribute('class', 'packet');
+      const m = document.createElementNS(SVGNS, 'animateMotion');
+      const dur = Math.max(1.2, Math.min(4, len / 90));
+      m.setAttribute('dur', dur.toFixed(2) + 's');
+      m.setAttribute('begin', ((i * 0.35) % 4).toFixed(2) + 's');
+      m.setAttribute('repeatCount', 'indefinite');
+      m.setAttribute('rotate', 'auto');
+      const mp = document.createElementNS(SVGNS, 'mpath');
+      mp.setAttribute('href', '#' + p.id);
+      m.appendChild(mp); c.appendChild(m);
+      p.parentNode.appendChild(c);
+    });
+  });
+}
+
+// Verificador de diagramas: devuelve las aristas que atraviesan nodos ajenos, pisan títulos de grupo
+// o etiquetas de otras aristas, o se cruzan entre sí. [] = diagramas limpios. Uso: checkOverlaps() en consola.
+window.checkOverlaps = function(){
+  const out = [];
+  document.querySelectorAll('#content .mermaid svg').forEach((svg, d) => {
+    const inv = svg.getCTM().inverse();
+    const box = el => { const b = el.getBBox(), t = inv.multiply(el.getCTM());
+      const p = new DOMPoint(b.x, b.y).matrixTransform(t), q = new DOMPoint(b.x + b.width, b.y + b.height).matrixTransform(t);
+      return { x1: Math.min(p.x, q.x), y1: Math.min(p.y, q.y), x2: Math.max(p.x, q.x), y2: Math.max(p.y, q.y), el }; };
+    const visible = sel => [...svg.querySelectorAll(sel)].filter(e => e.getBBox().width > 0).map(box);
+    const nodes = visible('g.node'), titles = visible('g.cluster-label'), labels = visible('g.edgeLabel');
+    const S = [...svg.querySelectorAll('path.flowchart-link')].map(p => {
+      const L = p.getTotalLength(), m = inv.multiply(p.getCTM()), pts = [];
+      for (let s = 0; s <= L; s += 3) { const q = p.getPointAtLength(s); pts.push(new DOMPoint(q.x, q.y).matrixTransform(m)); }
+      return { id: p.id, pts };
+    });
+    const inside = (pt, r, pad) => pt.x > r.x1 + pad && pt.x < r.x2 - pad && pt.y > r.y1 + pad && pt.y < r.y2 - pad;
+    const owner = labels.map(l => { const cx = (l.x1 + l.x2) / 2, cy = (l.y1 + l.y2) / 2; let best = null, bd = 1e9;
+      S.forEach(s => s.pts.forEach(p => { const dd = Math.hypot(p.x - cx, p.y - cy); if (dd < bd) { bd = dd; best = s.id; } })); return best; });
+    S.forEach(s => {
+      const a = s.pts[0], b = s.pts[s.pts.length - 1];
+      nodes.forEach(n => { if (!inside(a, n, -12) && !inside(b, n, -12) && s.pts.some(p => inside(p, n, 2))) out.push({ d, type: 'arista-atraviesa-nodo', edge: s.id, node: n.el.id }); });
+      titles.forEach(t => { if (s.pts.some(p => inside(p, t, 0))) out.push({ d, type: 'arista-sobre-titulo', edge: s.id, title: t.el.textContent.slice(0, 40) }); });
+      labels.forEach((l, k) => { if (owner[k] !== s.id && s.pts.some(p => inside(p, l, 1))) out.push({ d, type: 'arista-sobre-etiqueta-ajena', edge: s.id, label: l.el.textContent.slice(0, 40) }); });
+    });
+    for (let i = 0; i < S.length; i++) for (let j = i + 1; j < S.length; j++) {
+      const A = S[i].pts, B = S[j].pts, ends = [A[0], A[A.length - 1], B[0], B[B.length - 1]];
+      let hit = null;
+      for (const p of A) { if (ends.some(e => Math.hypot(e.x - p.x, e.y - p.y) < 16)) continue;
+        if (B.some(q => Math.hypot(p.x - q.x, p.y - q.y) < 2)) { hit = p; break; } }
+      if (hit) out.push({ d, type: 'aristas-se-cruzan', a: S[i].id, b: S[j].id, at: [Math.round(hit.x), Math.round(hit.y)] });
+    }
+  });
+  return out;
+};
+
+let renderToken = 0;
+async function show(md, meta){
+  const token = ++renderToken;
   const el = document.getElementById('content');
   el.innerHTML = (meta || '') + marked.parse(wikilinks(md));
   callouts(el); fixLinks(el);
-  try { mermaid.run({ nodes: el.querySelectorAll('.mermaid') }); } catch (e) { console.warn(e); }
+  // Un diagrama a la vez; si el usuario navegó mientras se dibujaba, se abandona el render viejo.
+  for (const node of el.querySelectorAll('.mermaid')) {
+    if (token !== renderToken) return;
+    try { await mermaid.run({ nodes: [node] }); } catch (e) { console.warn('mermaid', e); }
+  }
+  if (token === renderToken) animateFlows(el);
 }
 
 function viewHome(){
@@ -427,12 +549,14 @@ function buildNav(filter){
 }
 
 function markActive(){
-  const r = location.hash.split('~')[0] || '#/';
+  let r = location.hash.split('~')[0] || '#/';
+  try { r = decodeURIComponent(r); } catch (e) {}
   document.querySelectorAll('#navlist a').forEach(a => a.classList.toggle('active', a.dataset.r === r));
 }
 
 function route(){
-  const h = location.hash || '#/';
+  let h = location.hash || '#/';
+  try { h = decodeURIComponent(h); } catch (e) {}
   const [path, anchor] = h.slice(1).split('~');
   if (path.startsWith('/doc/')) viewDoc(path.slice(5), anchor);
   else if (path === '/exp') viewExp();
@@ -444,17 +568,23 @@ function route(){
   if (!anchor) window.scrollTo(0, 0);
 }
 
-function setLang(l){
+function setLang(l, render = true){
   lang = l; try { localStorage.setItem('docs-lang', l); } catch (e) {}
   document.getElementById('lang-es').classList.toggle('on', l === 'es');
   document.getElementById('lang-en').classList.toggle('on', l === 'en');
-  if ((location.hash || '#/') === '#/') viewHome();
+  if (render && (location.hash || '#/') === '#/') viewHome();
 }
 
 function initTheme(){
   const dark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   try { const t = localStorage.getItem('docs-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-  const apply = () => mermaid.initialize({ startOnLoad: false, theme: dark() ? 'dark' : 'default', securityLevel: 'strict' });
+  const apply = () => mermaid.initialize({
+    startOnLoad: false, theme: dark() ? 'dark' : 'default', securityLevel: 'strict',
+    layout: 'elk', look: 'classic',
+    elk: { mergeEdges: false, nodePlacementStrategy: 'NETWORK_SIMPLEX', cycleBreakingStrategy: 'GREEDY' },
+    flowchart: { curve: 'linear', padding: 14, nodeSpacing: 40, rankSpacing: 60, htmlLabels: true },
+    sequence: { mirrorActors: false, messageMargin: 34 },
+  });
   apply();
   document.getElementById('theme').onclick = () => {
     const t = dark() ? 'light' : 'dark';
@@ -468,6 +598,7 @@ function initTheme(){
 function liveReload(){
   const dot = document.getElementById('livedot');
   if (!/^https?:/.test(location.protocol)) { dot.style.background = 'var(--muted)'; dot.title = 'Abierto como archivo: sin recarga automática'; return; }
+  if (new URLSearchParams(location.search).has('nolive')) { dot.style.background = 'var(--warn)'; dot.title = 'Recarga automática pausada (?nolive)'; return; }
   dot.title = 'Recarga automática activa';
   setInterval(async () => {
     try {
@@ -484,8 +615,9 @@ document.getElementById('q').addEventListener('input', e => buildNav(e.target.va
 document.getElementById('lang-es').onclick = () => setLang('es');
 document.getElementById('lang-en').onclick = () => setLang('en');
 document.getElementById('menu').onclick = () => document.getElementById('nav').classList.toggle('open');
+document.getElementById('anim').onclick = e => { const off = document.body.classList.toggle('noanim'); e.currentTarget.classList.toggle('on', !off); };
 window.addEventListener('hashchange', route);
-initTheme(); setLang(lang); buildNav(); route(); liveReload();
+initTheme(); setLang(lang, false); buildNav(); route(); liveReload();
 </script>
 </body>
 </html>

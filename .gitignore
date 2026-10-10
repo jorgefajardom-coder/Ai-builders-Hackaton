@@ -12,3 +12,6 @@ docs/.trash/
 
 # Python
 __pycache__/
+
+# Temporales del generador de docs
+site/.*.tmp
