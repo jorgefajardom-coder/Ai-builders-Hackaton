@@ -426,11 +426,11 @@ The working notes (design, ADRs, evaluation results, incident, change log) live 
 
 ### Issue #6: Sentinel stayed green through the v2 switch
 
-**Symptoms**: The 15:30–15:50 sentinel rounds reported no changes, yet v2 had 3 behavior changes.
+**Symptoms**: The 15:30–15:50 sentinel rounds reported no changes, yet v2 had 3 behavior changes (announced for 15:30).
 
-**Root Cause**: A fixed 46-request probe only sees what it covers and when it runs; the switch landed between rounds and outside its cases.
+**Root Cause**: Nothing had changed yet: those rounds already covered all 3 changes (balance, 100000 TRANSFER, E510) and correctly saw v1 (log 3015–3164). The switch landed at 15:50–15:55, after the last round and before the next; `x_req` restarting at 1 (log 3166) marks the redeploy.
 
-**Solution**: Full-corpus regression (`bench/regresion.py`) right after the ticket found all 3 changes (40 diffs → 3 causes); plus a differential fuzzer for unseen stateful sequences.
+**Solution**: Full-corpus regression (`bench/regresion.py`) right after the ticket found all 3 changes (43 diffs → 3 causes); plus a differential fuzzer for unseen stateful sequences.
 
 ---
 
@@ -885,11 +885,11 @@ Las notas de trabajo (diseño, ADRs, resultados de evaluación, incidente, bitá
 
 ### Problema #6: El centinela siguió en verde durante el cambio a v2
 
-**Síntomas**: Las vueltas de 15:30–15:50 no reportaron cambios, pero v2 tenía 3 comportamientos distintos.
+**Síntomas**: Las vueltas de 15:30–15:50 no reportaron cambios, pero v2 tenía 3 comportamientos distintos (anunciados para las 15:30).
 
-**Causa raíz**: Un sondeo fijo de 46 requests solo ve lo que cubre y cuando corre; el cambio cayó entre vueltas y fuera de sus casos.
+**Causa raíz**: Todavía no había cambiado nada: esas vueltas ya cubrían los 3 cambios (saldo, TRANSFER de 100000, E510) y vieron v1 correctamente (log 3015–3164). El cambio llegó entre las 15:50 y las 15:55, después de la última vuelta y antes de la siguiente; el `x_req` que vuelve a 1 (log 3166) marca el redespliegue.
 
-**Solución**: La regresión del corpus completo (`bench/regresion.py`) justo después del ticket encontró los 3 cambios (40 diferencias → 3 causas); además, un fuzzer diferencial para secuencias con estado no vistas.
+**Solución**: La regresión del corpus completo (`bench/regresion.py`) justo después del ticket encontró los 3 cambios (43 diferencias → 3 causas); además, un fuzzer diferencial para secuencias con estado no vistas.
 
 ---
 

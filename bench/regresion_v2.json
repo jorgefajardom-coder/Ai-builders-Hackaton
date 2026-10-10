@@ -1,5 +1,77 @@
 [
  {
+  "seq": "s5-formula",
+  "v1_id": 1252,
+  "v2_id": 3227,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "consulta;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s5-formula",
+  "v1_id": 1256,
+  "v2_id": 3231,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s10-alta",
+  "v1_id": 1355,
+  "v2_id": 3330,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
   "seq": "s14-deposito",
   "v1_id": 1419,
   "v2_id": 3394,

@@ -11,7 +11,7 @@ Uso:
     python bench/diff.py --seq s17-anula       # solo una secuencia (repetible)
     python bench/diff.py --profile v1          # fuerza un perfil para todos los casos (por defecto: auto)
 
-Versiones (incidente, spec §6): el original pasó de v1 a v2 entre las 15:30 y las 15:55. Con --profile auto
+Versiones (incidente, spec §6): el original pasó de v1 a v2 entre las 15:50 y las 15:55. Con --profile auto
 cada caso se compara con el perfil de la versión con que se grabó: id de log ≤ CORTE_V2 (y los 20 ejemplos de la
 mañana) → v1; id > CORTE_V2 (regresión `v2-*`, exp26+ y centinela posterior) → v2. --target usa el perfil
 desplegado en el destino, así que contra un despliegue solo tiene sentido la era que ese perfil reproduce.

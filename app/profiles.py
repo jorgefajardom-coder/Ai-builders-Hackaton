@@ -1,4 +1,4 @@
-"""Perfiles de comportamiento (ADR-011). v2 hereda de v1 y sobrescribe solo lo que cambió (~15:30–15:55).
+"""Perfiles de comportamiento (ADR-011). v2 hereda de v1 y sobrescribe solo lo que cambió (15:50–15:55).
 
 Se elige con BEHAVIOR_PROFILE (por defecto v2, la versión vigente; v1 sigue disponible). Los comandos leen
 del perfil que reciben los parámetros que cambian entre versiones; el diff V1 → V2 ES el incidente (spec §6):

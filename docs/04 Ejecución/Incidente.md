@@ -6,7 +6,7 @@ tags: [ejecucion, incidente]
 > [!warning] Llegó a mitad del día y sin aviso. Fuente de verdad del comportamiento: `spec/ESPECIFICACION.md` §6 (CB-04…CB-10). Esta nota cuenta cómo respondimos.
 
 ## Qué cambió
-- **Hora:** entre las ~15:30 y las 15:55 (la última vuelta del centinela en v1 es el log 3164; la regresión que ya ve v2 empieza en el 3165).
+- **Hora:** entre las 15:50 y las 15:55. El reto avisó el cambio para las 15:30, pero las vueltas del centinela de 15:30, 15:40 y 15:50 (log 3015–3164) aún ven v1: 46/46 confirmadas, saldo entero (3018, 3118). La regresión que ya ve v2 empieza en el 3165 y el `x_req` del original vuelve a 1 en el 3166 (reinicio del servicio).
 - **Descripción (tal como llegó):** "Cambiaron 3 comportamientos, el resto es idéntico a v1. Encuentren los 3 cambios, regístrenlos en el log de experimentos y hagan que el reemplazo se comporte como v2. Los tests de conformidad corren contra v2."
 - **Los 3 cambios:**
 
@@ -16,7 +16,7 @@ tags: [ejecucion, incidente]
 | CB-05 | Límite por `TRANSFER` | ≤ 100000 | **≤ 50000** (inclusivo; mismo E506, mismo orden, sigue contando para el antifraude) | 3452, 3506, 3740–3761 |
 | CB-06 | `E510` cuenta bloqueada | `409 {"error","mensaje"}` | `423` + `"intentos": N` (E510 de esa cuenta desde su bloqueo: 1, 2, 3…; por cuenta; vuelve a 1 tras desbloquear y re-bloquear) | 3580, 3581, 3771–3805 |
 
-Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E303), DEPOSITO sin límite, umbral y desbloqueo del antifraude, precedencia de errores, fórmula del control, PING, NOTAS, HALT;x, rutas y auth (regresión 451/491 iguales; las 40 distintas se explican por los 3 cambios; exp29 20/20; barrido de 191 requests de un paso 0 diferencias).
+Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E303), DEPOSITO sin límite, umbral y desbloqueo del antifraude, precedencia de errores, fórmula del control, PING, NOTAS, HALT;x, rutas y auth (regresión 448/491 iguales; las 43 distintas se explican por los 3 cambios; exp29 20/20; barrido de 191 requests de un paso 0 diferencias).
 
 ## Impacto
 - **Qué componentes afecta:** solo `CONSULTA` (formato de salida), `TRANSFER` (límite y E510) y el catálogo de errores (E510). Pipeline, control, rutas y auth intactos → [[Arquitectura]]
@@ -27,8 +27,8 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 ## Respuesta
 | Hora | Acción | Resultado |
 |---|---|---|
-| ~15:55 | Regresión completa del corpus de la mañana contra el original (`bench/regresion.py`, seq `v2-*`, log 3165–3694) | 40 respuestas distintas de 491 → 3 patrones (`bench/regresion_v2.json`) |
-| 16:00 | Clasificación de las 40 diferencias | 16 formato de saldo, 4 E506 en 100000, 9 E510; 11 consecuencias del nuevo límite (saldos, ANULA → E402, OP corridos, un E507) |
+| ~15:55 | Regresión completa del corpus de la mañana contra el original (`bench/regresion.py`, seq `v2-*`, log 3165–3694) | 43 respuestas distintas de 491 → 3 patrones (`bench/regresion_v2.json`) |
+| 16:00 | Clasificación de las 43 diferencias | 19 formato de saldo, 4 E506 en 100000, 9 E510; 11 consecuencias del nuevo límite (saldos, ANULA → E402, OP corridos, un E507) |
 | 16:02 | exp26: formato del saldo | 2 decimales siempre, sin miles, signo `-`, entrada sin cambios |
 | 16:04 | exp27: búsqueda del límite (50000/50001 primero, luego binaria) | L = 50000 inclusivo, por operación, E506 antes de E507, cuenta para el bloqueo |
 | 16:06 | exp28: `intentos` | contador por cuenta de E510 desde el bloqueo; validaciones y otros comandos no lo mueven; se reinicia al desbloquear |
@@ -55,7 +55,7 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 
 ## Lecciones
 - Un centinela solo ve lo que cubre y cuando corre: el nuestro estaba en verde porque no dio vueltas durante la ventana del cambio. La **regresión completa del corpus** fue lo que lo encontró; correrla justo después de un aviso es barato (~530 requests).
-- Separar **cambios** de **consecuencias**: 40 diferencias se reducían a 3 causas; el límite nuevo arrastraba saldos, ANULA y numeración.
+- Separar **cambios** de **consecuencias**: 43 diferencias se reducían a 3 causas; el límite nuevo arrastraba saldos, ANULA y numeración.
 - Tener el perfil como dato (ADR-011) hizo el arreglo de 3 parámetros; las dos versiones conviven y se prueban por era.
 - Las herramientas de prueba tienen que saber de versiones: sin `CORTE_V2`, el log mezclaba dos verdades.
 - **El estado es por token**: probar contra el deploy mientras el portal evalúa contamina ambas cosas. Regla: con el portal evaluando, nadie toca el entrypoint.
