@@ -1,0 +1,25 @@
+[
+ {
+  "seq": "fz2-001",
+  "paso": 7,
+  "id": 4246,
+  "tipo": "TRANSFER",
+  "request": {
+   "m": "TRANSFER;AC-0002;AC-0001;100001;37"
+  },
+  "original": [
+   422,
+   {
+    "error": "E507",
+    "mensaje": "saldo insuficiente"
+   }
+  ],
+  "reemplazo": [
+   422,
+   {
+    "error": "E506",
+    "mensaje": "límite excedido"
+   }
+  ]
+ }
+]

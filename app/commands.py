@@ -112,7 +112,9 @@ def transfer(estado, args, perfil):
             estado.intentos_bloqueada[args[0]] = n
             raise DomainError("E510", {"intentos": n})
         raise DomainError("E510")
-    if monto > perfil.limite_transfer:               # inclusivo, por operación: v1 100000 (log 1478), v2 50000 (log 3741)
+    mismo_titular = origen["nombre"] == destino["nombre"]   # nombre exacto del ALTA, distingue mayúsculas
+    # Entre cuentas del mismo titular no hay límite por operación (log 4906, 4923; con nombres distintos 4917, 4929).
+    if monto > perfil.limite_transfer and not mismo_titular:  # inclusivo: v1 100000 (log 1478), v2 50000 (log 3741)
         _fallo_negocio(estado, args[0], "E506")
     if origen["saldo"] < monto:
         _fallo_negocio(estado, args[0], "E507")
