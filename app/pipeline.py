@@ -80,7 +80,7 @@ def etapa_ping(ctx):
     if nombre.upper() == "PING":
         if args:
             raise DomainError("E302")
-        ctx["resultado"] = REGISTRO["PING"].handler(None, [])
+        ctx["resultado"] = REGISTRO["PING"].handler(None, [], None)
 
 
 def etapa_control_formato(ctx):
@@ -117,10 +117,10 @@ ETAPAS = {
 }
 
 
-def procesar_msg(raw: bytes, estado, orden):
+def procesar_msg(raw: bytes, estado, perfil):
     ctx = {"raw": raw}
-    for nombre in orden:
+    for nombre in perfil.orden_msg:
         ETAPAS[nombre](ctx)
         if "resultado" in ctx:                       # cortocircuito (PING)
             return ctx["resultado"]
-    return ctx["cmd"].handler(estado, ctx["args"])
+    return ctx["cmd"].handler(estado, ctx["args"], perfil)

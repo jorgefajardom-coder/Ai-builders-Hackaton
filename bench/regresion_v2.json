@@ -1,0 +1,971 @@
+[
+ {
+  "seq": "s14-deposito",
+  "v1_id": 1419,
+  "v2_id": 3394,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s14-deposito",
+  "v1_id": 1426,
+  "v2_id": 3401,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 1100001
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "11000.01"
+   }
+  ]
+ },
+ {
+  "seq": "s16-transfer",
+  "v1_id": 1477,
+  "v2_id": 3452,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100000;12"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0002"
+   }
+  ],
+  "v2": [
+   422,
+   {
+    "error": "E506",
+    "mensaje": "límite excedido"
+   }
+  ]
+ },
+ {
+  "seq": "s16-transfer",
+  "v1_id": 1479,
+  "v2_id": 3454,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100000;12"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0003"
+   }
+  ],
+  "v2": [
+   422,
+   {
+    "error": "E506",
+    "mensaje": "límite excedido"
+   }
+  ]
+ },
+ {
+  "seq": "s16-transfer",
+  "v1_id": 1481,
+  "v2_id": 3456,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 300000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "5000.00"
+   }
+  ]
+ },
+ {
+  "seq": "s16-transfer",
+  "v1_id": 1489,
+  "v2_id": 3464,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 200000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s16-transfer",
+  "v1_id": 1492,
+  "v2_id": 3467,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0002;AC-0001;1;37"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0004"
+   }
+  ],
+  "v2": [
+   422,
+   {
+    "error": "E507",
+    "mensaje": "saldo insuficiente"
+   }
+  ]
+ },
+ {
+  "seq": "s17-anula",
+  "v1_id": 1499,
+  "v2_id": 3474,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s17-anula",
+  "v1_id": 1504,
+  "v2_id": 3479,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": -500
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "-5.00"
+   }
+  ]
+ },
+ {
+  "seq": "s17-anula",
+  "v1_id": 1505,
+  "v2_id": 3480,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 1500
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "15.00"
+   }
+  ]
+ },
+ {
+  "seq": "s17-anula",
+  "v1_id": 1513,
+  "v2_id": 3488,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s17-anula",
+  "v1_id": 1518,
+  "v2_id": 3493,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 5
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "0.05"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1526,
+  "v2_id": 3501,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1529,
+  "v2_id": 3504,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 40000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "400.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1531,
+  "v2_id": 3506,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100000;12"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0003"
+   }
+  ],
+  "v2": [
+   422,
+   {
+    "error": "E506",
+    "mensaje": "límite excedido"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1532,
+  "v2_id": 3507,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTa;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 110000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "2100.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1534,
+  "v2_id": 3509,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "ANULA;OP-0003;66"
+  },
+  "v1": [
+   200,
+   {
+    "ok": true,
+    "anulada": "OP-0003"
+   }
+  ],
+  "v2": [
+   404,
+   {
+    "error": "E402",
+    "mensaje": "operación inexistente"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1535,
+  "v2_id": 3510,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "ANULA;OP-0003;66"
+  },
+  "v1": [
+   200,
+   {
+    "ok": false,
+    "motivo": "ya anulada"
+   }
+  ],
+  "v2": [
+   404,
+   {
+    "error": "E402",
+    "mensaje": "operación inexistente"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1539,
+  "v2_id": 3514,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "DEPOSITO;AC-0002;700;35"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0004"
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0003"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-a",
+  "v1_id": 1540,
+  "v2_id": 3515,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 40700
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "407.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1547,
+  "v2_id": 3522,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 0
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "0.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1550,
+  "v2_id": 3525,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 40000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "400.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1552,
+  "v2_id": 3527,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100000;12"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0003"
+   }
+  ],
+  "v2": [
+   422,
+   {
+    "error": "E506",
+    "mensaje": "límite excedido"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1553,
+  "v2_id": 3528,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTa;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 110000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "2100.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1555,
+  "v2_id": 3530,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "ANULA;OP-0003;66"
+  },
+  "v1": [
+   200,
+   {
+    "ok": true,
+    "anulada": "OP-0003"
+   }
+  ],
+  "v2": [
+   404,
+   {
+    "error": "E402",
+    "mensaje": "operación inexistente"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1556,
+  "v2_id": 3531,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "ANULA;OP-0003;66"
+  },
+  "v1": [
+   200,
+   {
+    "ok": false,
+    "motivo": "ya anulada"
+   }
+  ],
+  "v2": [
+   404,
+   {
+    "error": "E402",
+    "mensaje": "operación inexistente"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1560,
+  "v2_id": 3535,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "DEPOSITO;AC-0002;700;35"
+  },
+  "v1": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0004"
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "status": "recieved",
+    "operacionId": "OP-0003"
+   }
+  ]
+ },
+ {
+  "seq": "s18-determinismo-b",
+  "v1_id": 1561,
+  "v2_id": 3536,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": 40700
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "407.00"
+   }
+  ]
+ },
+ {
+  "seq": "s18-precedencia",
+  "v1_id": 1572,
+  "v2_id": 3547,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0002;11"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": -300
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0002",
+    "saldo": "-3.00"
+   }
+  ]
+ },
+ {
+  "seq": "s22a-e507",
+  "v1_id": 1722,
+  "v2_id": 3580,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 1
+   }
+  ]
+ },
+ {
+  "seq": "s22a-e507",
+  "v1_id": 1723,
+  "v2_id": 3581,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 2
+   }
+  ]
+ },
+ {
+  "seq": "s22a-e507",
+  "v1_id": 1724,
+  "v2_id": 3582,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 1000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "10.00"
+   }
+  ]
+ },
+ {
+  "seq": "s22d-e506",
+  "v1_id": 1751,
+  "v2_id": 3609,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 1
+   }
+  ]
+ },
+ {
+  "seq": "s23a-e510-orden",
+  "v1_id": 1782,
+  "v2_id": 3640,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100001;9"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 1
+   }
+  ]
+ },
+ {
+  "seq": "s23a-e510-orden",
+  "v1_id": 1783,
+  "v2_id": 3641,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;5000;65"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 2
+   }
+  ]
+ },
+ {
+  "seq": "s23a-e510-orden",
+  "v1_id": 1786,
+  "v2_id": 3644,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "CONSULTA;AC-0001;14"
+  },
+  "v1": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": 1000
+   }
+  ],
+  "v2": [
+   200,
+   {
+    "cuenta_id": "AC-0001",
+    "saldo": "10.00"
+   }
+  ]
+ },
+ {
+  "seq": "s24a-deposito-desbloquea",
+  "v1_id": 2632,
+  "v2_id": 3662,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 1
+   }
+  ]
+ },
+ {
+  "seq": "s24b-deposito-fallido",
+  "v1_id": 2645,
+  "v2_id": 3675,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 1
+   }
+  ]
+ },
+ {
+  "seq": "s24b-deposito-fallido",
+  "v1_id": 2647,
+  "v2_id": 3677,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 2
+   }
+  ]
+ },
+ {
+  "seq": "s24b-deposito-fallido",
+  "v1_id": 2649,
+  "v2_id": 3679,
+  "metodo": "POST",
+  "ruta": "/msg",
+  "request": {
+   "m": "TRANSFER;AC-0001;AC-0002;100;24"
+  },
+  "v1": [
+   409,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada"
+   }
+  ],
+  "v2": [
+   423,
+   {
+    "error": "E510",
+    "mensaje": "cuenta bloqueada",
+    "intentos": 3
+   }
+  ]
+ }
+]

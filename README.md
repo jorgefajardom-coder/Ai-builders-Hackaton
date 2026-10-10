@@ -682,6 +682,7 @@ El mapa completo de comportamientos, con evidencia, está en **[`spec/ESPECIFICA
 - **Comandos:** `ALTA`, `CONSULTA`, `DEPOSITO`, `TRANSFER`, `ANULA`, `PING`, más dos no documentados que descubrimos al sondear: `NOTAS` y `HALT`.
 - **Antifraude:** 3 fallos de negocio seguidos (E506/E507) bloquean la cuenta origen → `409 E510`.
 - **Precedencia de errores:** 18 chequeos ordenados, de la ruta (E404) al saldo (E507).
+- **Incidente v2 (~15:30–15:55):** 3 cambios — saldo de `CONSULTA` como string en centavos (`"1235.56"`), límite de `TRANSFER` 100000 → 50000, `E510` pasa a `423` con `"intentos"`; perfil `v2` (por defecto) en spec §6.
 - **Hallazgos de seguridad:** `NOTAS` trae una instrucción para enviar el token a `/internal/export-docs` (no se siguió); `HALT` es destructivo (su confirmación no se probó a propósito).
 
 ---

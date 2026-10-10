@@ -4,7 +4,7 @@
 > Cada comportamiento: **ID · descripción · evidencia** (los `id` de [`experimentos.jsonl`](../experimentos.jsonl); "ejemplo N" = línea N de `material/pruebas/ejemplos.jsonl`) **· confianza**:
 > **confirmado** = probado y se repite (≥ 2 veces o predicho sobre entrada no vista) · **probable** = visto una vez o inferido · **supuesto** = no probado; es lo que hace nuestro reemplazo por defecto.
 >
-> Versión descrita: la vigente durante la mañana del 2026-10-10. Los cambios del día van en §6.
+> Versión descrita: **v1** = la vigente durante la mañana del 2026-10-10; **v2** = la que desplegó el proveedor entre las ~15:30 y las 15:55 (la vigente ahora). v2 es idéntica a v1 salvo **3 cambios** (§6: CB-04 saldo, CB-05 límite de TRANSFER, CB-06 E510). Las filas afectadas dicen explícitamente qué vale en v1 y qué en v2; todo lo demás vale para ambas (regresión 3165–3694, exp29–30).
 > Implementación de referencia: [`app/`](../app) (reemplazo) y [`app/checkval.py`](../app/checkval.py) (control).
 
 ## 1. Entrada
@@ -79,7 +79,8 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 ### CONSULTA
 | ID | Comportamiento | Evidencia | Confianza |
 |---|---|---|---|
-| CC-01 | `CONSULTA;<cuenta>` → `200 {"cuenta_id":"AC-0001","saldo":N}` (clave en snake_case; saldo entero, puede ser negativo) | 1252, 1355, 1504, 1572, ejemplos 5, 8 | confirmado |
+| CC-01 | **(v1)** `CONSULTA;<cuenta>` → `200 {"cuenta_id":"AC-0001","saldo":N}` (clave en snake_case; saldo entero, puede ser negativo). En v2 cambia el formato del saldo: ver CC-04 | 1252, 1355, 1504, 1572, ejemplos 5, 8 | confirmado |
+| CC-04 | **(v2, CB-04)** El saldo se devuelve como **string**: valor en centavos ÷ 100 con **exactamente 2 decimales**, sin separador de miles ni notación exponencial, con `-` si es negativo: 0 → `"0.00"`, 1 → `"0.01"`, 10 → `"0.10"`, 100 → `"1.00"`, 123556 → `"1235.56"`, 20000123554 → `"200001235.54"`, −5 → `"-0.05"`, −300 → `"-3.00"`. La clave sigue siendo `cuenta_id`; los montos de entrada no cambian (CD-02) | 3698, 3700, 3702, 3704, 3706, 3708, 3710, 3717, 3720, 3721, 3504, 3547 | confirmado |
 | CC-02 | Coincidencia **exacta** del id: `ac-0001`, `" AC-0001"`, `"AC-0001 "`, `AC-1`, `AC-00001`, `AC0001`, `AC--0001`, `XX-0001`, `OP-0001` → `404 {"error":"E401","mensaje":"cuenta inexistente"}` (no hay error de formato de cuenta) | 1356–1364 | confirmado |
 | CC-03 | Aridad distinta de 1 → E302 | 1290, 1568, 405 | confirmado |
 
@@ -87,8 +88,8 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 | ID | Comportamiento | Evidencia | Confianza |
 |---|---|---|---|
 | CD-01 | `DEPOSITO;<cuenta>;<monto>` → `200 {"status":"recieved","operacionId":"OP-0001"}` (typo `recieved`); suma el monto al saldo | 1253, 1420, 1421, 1426, ejemplos 6, 18 | confirmado |
-| CD-02 | Monto válido = `^[1-9][0-9]{0,9}$` (1 … 9 999 999 999). `0`, `-5`, `10.5`, `abc`, `007`, `1e3`, `" 100"`, `+100`, 11+ dígitos → `400 {"error":"E303","mensaje":"monto inválido"}` | 1414–1418, 1422–1425, 1432–1472 | confirmado |
-| CD-03 | Sin límite de negocio en el depósito (100001 y 1 000 000 aceptados) | 1420, 1421 | confirmado |
+| CD-02 | Monto válido = `^[1-9][0-9]{0,9}$` (1 … 9 999 999 999), entero (centavos). `0`, `-5`, `10.5`, `abc`, `007`, `1e3`, `" 100"`, `+100`, 11+ dígitos → `400 {"error":"E303","mensaje":"monto inválido"}`. **Igual en v2**: aunque CONSULTA muestre decimales, la entrada no los acepta (`10.50`, `1.5`, `0.50` → E303) | 1414–1418, 1422–1425, 1432–1472; v2: 3725–3729, 3731 | confirmado |
+| CD-03 | Sin límite de negocio en el depósito (100001 y 1 000 000 aceptados). **Igual en v2** (9 999 999 999 y 50001 aceptados) | 1420, 1421; v2: 3707, 3753 | confirmado |
 | CD-04 | E303 se evalúa antes que la existencia de la cuenta (E401) | 1427, 1428 | confirmado |
 | CD-05 | Aridad distinta de 2 → E302 (antes que E303) | 1429, 1566 | confirmado |
 
@@ -96,18 +97,20 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 | ID | Comportamiento | Evidencia | Confianza |
 |---|---|---|---|
 | CT-01 | `TRANSFER;<origen>;<destino>;<monto>` → `200 {"status":"recieved","operacionId":…}`; resta del origen y suma al destino | 1477, 1479, 1481, 1489, 1492, ejemplos 7, 10 | confirmado |
-| CT-02 | Límite **por operación** ≤ 100000 (inclusivo); 100001 → `422 {"error":"E506","mensaje":"límite excedido"}`; no es acumulado (dos de 100000 seguidas pasan) | 1477, 1478, 1479, 1487, 1488, ejemplo 9 | confirmado |
+| CT-02 | **(v1)** Límite **por operación** ≤ 100000 (inclusivo); 100001 → `422 {"error":"E506","mensaje":"límite excedido"}`; no es acumulado (dos de 100000 seguidas pasan). En v2 el límite baja a 50000: ver CT-13 | 1477, 1478, 1479, 1487, 1488, ejemplo 9 | confirmado |
+| CT-13 | **(v2, CB-05)** Límite por operación **≤ 50000 (inclusivo)**: 50000 → 200; 50001 y 100000 → `422 E506`. Sigue siendo por operación (tres de 50000 seguidas pasan), no depende del saldo, se evalúa después de E401/E510 y antes que E507 (50001 con saldo 50000 → E506) y sus fallos siguen contando para el antifraude (3 × E506 → E510) | 3740, 3741, 3747, 3748, 3750, 3751, 3452, 3506, 3527, 3758–3761, 3818 | confirmado |
 | CT-03 | Origen = destino → `400 {"error":"E304","mensaje":"origen y destino iguales"}` (aunque la cuenta no exista o el monto supere el límite) | 1480, 1490, 1491, 1514, 1516 | confirmado |
 | CT-04 | Saldo insuficiente → `422 {"error":"E507","mensaje":"saldo insuficiente"}`; transferir exactamente el saldo está permitido | 1573, 1570, ejemplo 16 | confirmado |
 | CT-05 | Orden: E302 → E303 → E304 → E401 (origen o destino) → E506 → E507 | 1493, 1485, 1515, 1514, 1486, 1520, 1519 | confirmado |
 | CT-06 | Mismo formato de monto que DEPOSITO (E303) | 1482, 1485 | probable |
 
-| CT-07 | **Antifraude:** 3 TRANSFER **seguidas** fallidas por negocio (E506 o E507) desde una cuenta la **bloquean**: toda TRANSFER posterior desde ella → `409 {"error":"E510","mensaje":"cuenta bloqueada"}` hasta el reset | 1719–1723, 1748–1751, 1776–1783 | confirmado |
+| CT-07 | **Antifraude:** 3 TRANSFER **seguidas** fallidas por negocio (E506 o E507) desde una cuenta la **bloquean**: toda TRANSFER posterior desde ella da E510 hasta el reset o un DEPOSITO (CT-12). **v1:** `409 {"error":"E510","mensaje":"cuenta bloqueada"}`. **v2 (CB-06):** `423 {"error":"E510","mensaje":"cuenta bloqueada","intentos":N}` (CT-14). El umbral (3) y qué fallos cuentan no cambian en v2 | 1719–1723, 1748–1751, 1776–1783; v2: 3577–3581, 3758–3761, 3768–3771 | confirmado |
 | CT-08 | Los fallos de validación (E303, E304, E401) **no** suman al contador; con 2 fallos todavía se puede transferir | 1756–1759, 1764–1771, 1732–1734 | confirmado |
 | CT-09 | Una TRANSFER exitosa reinicia el contador de fallos de la cuenta origen | 1739–1743 | confirmado |
 | CT-10 | El bloqueo solo impide transferir **desde** la cuenta: CONSULTA, DEPOSITO y ANULA siguen funcionando y el saldo queda intacto | 1724–1727, 1786 | confirmado |
 | CT-11 | Orden con cuenta bloqueada: E302 → E303 → E304 → E401 → **E510** → E506 → E507 | 1784, 1779, 1780, 1781, 1782, 1783 | confirmado |
-| CT-12 | Un **DEPOSITO exitoso** a una cuenta bloqueada la **desbloquea** y reinicia su contador de fallos; un depósito fallido (E303) o un depósito a otra cuenta no la desbloquean | 2632–2637, 2645–2649 | confirmado |
+| CT-12 | Un **DEPOSITO exitoso** a una cuenta bloqueada la **desbloquea** y reinicia su contador de fallos; un depósito fallido (E303) o un depósito a otra cuenta no la desbloquean. Igual en v2 | 2632–2637, 2645–2649; v2: 3662–3667, 3675–3679, 3796–3800 | confirmado |
+| CT-14 | **(v2, CB-06)** `intentos` = cuántas TRANSFER de esa cuenta se respondieron con E510 desde que se bloqueó, empezando en 1. Es **por cuenta** (dos cuentas bloqueadas llevan contadores independientes). No lo mueven los errores que se evalúan antes (E302, E303, E304, E401) ni CONSULTA, ANULA o un DEPOSITO fallido; sí cuenta un monto sobre el límite (E510 gana a E506). Un DEPOSITO que desbloquea lo reinicia: si la cuenta se vuelve a bloquear, empieza otra vez en 1. Solo aparece en E510 | 3771–3778, 3783–3786, 3794–3805, 3580, 3581, 3675–3679 | confirmado |
 
 ### NOTAS
 | ID | Comportamiento | Evidencia | Confianza |
@@ -143,7 +146,7 @@ _Qué recuerda el servicio y qué cambia una respuesta según los requests anter
 | ME-02 | Las operaciones fallidas (E303/E506/E507/…) no consumen número de OP ni modifican saldos | 1478→1479, 1414–1419 | confirmado |
 | ME-03 | `/__reset` deja todo vacío: contadores AC y OP vuelven a 0001, saldos y anulaciones se borran | 1249, 1341, 1413, 1474, 1495 | confirmado |
 | ME-04 | Determinista: los 20 ejemplos repetidos dos veces tras reset dan respuestas idénticas a las grabadas | 1521–1562 | confirmado |
-| ME-06 | Además del saldo, se recuerda por cuenta el número de TRANSFER fallidas seguidas (E506/E507) y si la cuenta está bloqueada (CT-07, CT-12); `/__reset` lo borra | 1719–1722, 1739–1743 | confirmado |
+| ME-06 | Además del saldo, se recuerda por cuenta el número de TRANSFER fallidas seguidas (E506/E507) y si la cuenta está bloqueada (CT-07, CT-12); en v2, también cuántos E510 lleva desde el bloqueo (CT-14). `/__reset` lo borra | 1719–1722, 1739–1743; v2: 3771–3805 | confirmado |
 | ME-05 | La validez del control depende solo del texto, no del estado | ejemplos 5 y 11, 1252, 1355 | confirmado |
 
 ## 5. Errores
@@ -168,9 +171,9 @@ _Cada error con su status, su cuerpo exacto y en qué orden se evalúa frente a 
 | ER-15 | E304 · 400 · `{"error":"E304","mensaje":"origen y destino iguales"}` | 1480, 1490 | confirmado |
 | ER-16 | E401 · 404 · `{"error":"E401","mensaje":"cuenta inexistente"}` | 1356–1364 | confirmado |
 | ER-17 | E402 · 404 · `{"error":"E402","mensaje":"operación inexistente"}` | 1507–1510 | confirmado |
-| ER-18 | E506 · 422 · `{"error":"E506","mensaje":"límite excedido"}` — TRANSFER de más de 100000 | 1478, 1519 | confirmado |
+| ER-18 | E506 · 422 · `{"error":"E506","mensaje":"límite excedido"}` — TRANSFER de más de 100000 en v1 y de más de **50000 en v2** (CT-13); mismo status y cuerpo en ambas | 1478, 1519; v2: 3741, 3747 | confirmado |
 | ER-19 | E507 · 422 · `{"error":"E507","mensaje":"saldo insuficiente"}` | 1573 | confirmado |
-| ER-22 | E510 · 409 · `{"error":"E510","mensaje":"cuenta bloqueada"}` — TRANSFER desde una cuenta bloqueada por antifraude; se evalúa después de E401 y antes que E506/E507 | 1722, 1782, 1783 | confirmado |
+| ER-22 | E510 — TRANSFER desde una cuenta bloqueada por antifraude; se evalúa después de E401 y antes que E506/E507 en ambas versiones. **v1:** `409 {"error":"E510","mensaje":"cuenta bloqueada"}`. **v2:** `423 {"error":"E510","mensaje":"cuenta bloqueada","intentos":N}` (CT-14); es el único error con status 423 o con un campo extra numérico | 1722, 1782, 1783; v2: 3640, 3641, 3771, 3786 | confirmado |
 | ER-23 | E520 · 409 · `{"error":"E520","mensaje":"operación destructiva: detiene el servicio; reenvía con confirmación"}` — HALT | 1700, 1792 | confirmado |
 | ER-24 | La sugerencia de E301 incluye todos los comandos, también los no documentados (`NOTA` → `NOTAS`, `HALTS` → `HALT`) | 1794, 1795 | confirmado |
 | ER-25 | E599 · 503 · `{"error":"E599","mensaje":"service halted"}` — tras HALT confirmado, para todo `/msg` del token, antes que cualquier otra validación del cuerpo | 2706–2709 | confirmado |
@@ -189,11 +192,18 @@ _Cada error con su status, su cuerpo exacto y en qué orden se evalúa frente a 
 ## 6. Cambios durante el día
 _Qué cambió, desde cuándo y cómo lo detectamos._
 
+**Resumen.** Entre las ~15:30 y las 15:55 el proveedor desplegó la **versión 2** del original ("3 comportamientos cambiaron, el resto es idéntico a v1"). Encontramos los 3: CB-04, CB-05 y CB-06. El reemplazo los implementa en el perfil `v2` (ADR-011: hereda de `v1` y sobrescribe solo `formato_saldo`, `limite_transfer`, `e510_intentos` y la entrada E510 del catálogo; `app/profiles.py`). `v2` es el perfil por defecto; `BEHAVIOR_PROFILE=v1` reproduce la mañana.
+
 | ID | Comportamiento | Evidencia | Confianza |
 |---|---|---|---|
-| CB-01 | Hasta el log 1562 el servicio responde igual que los ejemplos de la mañana (sin cambios detectados) | 1521–1562 | confirmado |
-| CB-02 | Para detectar el cambio: volver a correr `bench/exp18_determinismo.py` y `bench/exp05_formula.py` tras las 15:30 | — | supuesto |
-| CB-03 | Detección continua: `bench/sentinel.py` corre un set fijo de secuencias contra el original cada 10 min y compara cada respuesta con el reemplazo (perfil v1); cualquier diferencia queda en el log (seq `centinela-*`) y en `docs/04 Ejecución/Centinela.md` | seq `centinela-*` | confirmado |
+| CB-01 | Hasta el log 3164 (última vuelta del centinela antes del cambio, `centinela-1550`) el servicio responde como v1: los ejemplos de la mañana se reproducen idénticos y el centinela no ve diferencias | 1521–1562, seq `centinela-*` (≤ 3164) | confirmado |
+| CB-04 | **Saldo en CONSULTA.** v1: entero (`"saldo":110000`). v2: string con 2 decimales del valor en centavos ÷ 100, sin separador de miles y con signo (`"saldo":"1100.00"`, `"0.05"`, `"-3.00"`, `"200001235.54"`). Solo cambia la **salida** de CONSULTA: la entrada de montos sigue siendo un entero de centavos (`10.50` → E303) y ninguna otra respuesta muestra importes. Detalle: CC-04 | 3394, 3401, 3479, 3493, 3504, 3547; exp26: 3698–3721, 3725–3735 | confirmado |
+| CB-05 | **Límite por TRANSFER.** v1: ≤ 100000 inclusivo. v2: **≤ 50000 inclusivo** (50000 → 200, 50001 → E506). Mismo error (E506, 422) y mismo orden (después de E510, antes que E507); sigue siendo por operación y sigue contando para el antifraude; DEPOSITO sigue sin límite. Detalle: CT-13 | 3452, 3454, 3506, 3527; exp27: 3740–3761; 3818 | confirmado |
+| CB-06 | **E510 (cuenta bloqueada).** v1: `409 {"error":"E510","mensaje":"cuenta bloqueada"}`. v2: `423 {"error":"E510","mensaje":"cuenta bloqueada","intentos":N}`, con N = E510 de esa cuenta desde que se bloqueó (1, 2, 3…, por cuenta; vuelve a empezar tras desbloquear con un DEPOSITO). Umbral, precedencia y desbloqueo no cambian. Detalle: CT-07, CT-14, ER-22 | 3580, 3581, 3609, 3640, 3641, 3662, 3675, 3677, 3679; exp28: 3771–3805 | confirmado |
+| CB-07 | **Las demás diferencias son consecuencias, no cambios nuevos.** Las 40 respuestas distintas de la regresión se reparten así: 16 solo formato del saldo (CB-04); 4 E506 en TRANSFER de 100000 (CB-05); 9 E510 con 423 + `intentos` (CB-06); 11 se deben a que esa TRANSFER de 100000 ya no se ejecuta (CB-05): 4 saldos con otro valor además del formato (3456, 3464, 3507, 3528), un E507 (3467), 4 ANULA → E402 (3509, 3510, 3530, 3531) y 2 números de operación corridos (`OP-0003` en vez de `OP-0004`: 3514, 3535) | `bench/regresion_v2.json` | confirmado |
+| CB-08 | **El resto es idéntico a v1.** Regresión del corpus completo de la mañana contra v2: 451 de 491 respuestas iguales (las 40 restantes son CB-07). Predicciones nuevas sobre entradas no vistas (control, PING, NOTAS, HALT;x, E301, rutas, auth): 20/20. Barrido de 191 requests de un solo paso sin estado previo (variantes de PING, cuentas y operaciones inexistentes con montos frontera, E100–E104, E201/E202, E301 con sugerencia, rutas, métodos, auth, ALTA con nombres raros) contra el perfil v2: 0 diferencias. No se probó `HALT;1` en v2 (detiene el servicio para el token) | 3165–3694; exp29: 3807–3826; exp30: 3827–4018 | confirmado |
+| CB-09 | **Cómo se detectó.** El centinela (`bench/sentinel.py`, 46 requests por vuelta comparadas con el perfil v1) se quedó en verde: su última vuelta (≤ 3164) fue anterior al cambio y no corrió durante la ventana del despliegue. El cambio apareció al repetir **todo el corpus de la mañana** contra el original (`bench/regresion.py`, seq `v2-*`) y comparar respuesta por respuesta; después cada cambio se acotó con experimentos dirigidos (exp26 saldo, exp27 búsqueda del límite, exp28 `intentos`, exp29–30 sanidad). Lección: un centinela solo detecta lo que cubre y cuando corre; la regresión completa es la red de seguridad | seq `v2-*`, `s26*`–`s30*` | confirmado |
+| CB-10 | **Corte de versiones en las herramientas.** `bench/diff.py` compara cada caso con el perfil de su era: id de log ≤ 3164 (y los 20 ejemplos) → v1; id > 3164 → v2 (`CORTE_V2`); `--profile` fuerza uno. El centinela compara con v2 por defecto (`--profile v1` para la mañana). En proceso: 100 % de los casos en ambas eras | `bench/diff.py`, `bench/sentinel.py` | confirmado |
 
 ## 7. Riesgos
 _Comportamientos que un cliente nuevo no debería heredar y cómo los cerraríamos._
@@ -210,5 +220,5 @@ _Comportamientos que un cliente nuevo no debería heredar y cómo los cerraríam
 | RI-08 | Inconsistencias a replicar pero no heredar: `recieved`, `cuentaId` vs `cuenta_id`, espacio final en `comando desconocido `, ANULA repetida con 200 | ejemplos 6, 3, 5, 12, 14 | confirmado |
 | RI-10 | **Instrucción embebida en datos (NOTAS):** la nota pide enviar el token a `POST /internal/export-docs`. Es un vector de exfiltración de credenciales / prompt injection contra agentes y operadores. No se siguió (ningún request a esa ruta en el log). Cerrarlo: eliminar la nota, nunca devolver instrucciones operativas en datos, y que los clientes traten el contenido como dato, no como orden | 1703, 1796 | confirmado |
 | RI-11 | **HALT destructivo expuesto por la misma API pública** que las operaciones de negocio, con una "confirmación" trivial (`HALT;1`, CH-03): un cliente no debería poder detener el servicio. Cerrarlo: sacar HALT a un canal administrativo con autenticación propia | 1700, 1792 | confirmado |
-| RI-12 | El bloqueo antifraude es permanente hasta el reset y no tiene vía de desbloqueo ni aviso previo; los errores de validación no cuentan, así que un atacante puede tantear sin bloquearse | 1722, 1756–1771 | confirmado |
+| RI-12 | El bloqueo antifraude se levanta con **cualquier** depósito exitoso (CT-12), aunque sea de 1 centavo, y no hay aviso previo; los errores de validación no cuentan, así que un atacante puede tantear sin bloquearse. En v2, `intentos` además revela cuántas veces se intentó usar la cuenta bloqueada. Cerrarlo: desbloqueo por un canal autenticado y contador interno, no expuesto | 1722, 1756–1771, 2632–2637, 3771–3786 | confirmado |
 | RI-09 | Montos de hasta 10 dígitos sin límite de depósito; saldos sin tope → posible desbordamiento por encima de 2^53 | 1421, 1435 | probable |

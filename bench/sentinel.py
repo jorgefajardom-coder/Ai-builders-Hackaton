@@ -1,13 +1,15 @@
 """Centinela: detecta cambios de comportamiento del original (incidente de las 15:30) de forma continua.
 
 Cada vuelta corre un set fijo de secuencias contra el original (vía prober → quedan en experimentos.jsonl)
-y compara cada respuesta con la del reemplazo en proceso (perfil activo, por defecto v1) usando el
+y compara cada respuesta con la del reemplazo en proceso (perfil v2 por defecto, la versión vigente desde
+~15:55; `--profile v1` para la de la mañana) usando el
 comparador del jurado. Toda diferencia = cambio en el original (o hueco del reemplazo).
 
 Uso:
     python bench/sentinel.py                 # vuelta cada 10 min hasta las 20:00
     python bench/sentinel.py --once          # una sola vuelta
     python bench/sentinel.py --every 5       # cada 5 min
+    python bench/sentinel.py --profile v1    # comparar contra el perfil v1
 
 Estado legible en docs/04 Ejecución/Centinela.md (lo publica el sitio de documentación).
 """
@@ -23,12 +25,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import prober  # noqa: E402  (carga .env y registra cada request en el log)
 from app.checkval import control  # noqa: E402
+from app.profiles import PERFILES  # noqa: E402
 from diff import InProcess, same  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 STATUS = ROOT / "docs" / "04 Ejecución" / "Centinela.md"
 DAILY_BUDGET_STOP = 7400   # deja margen sobre las 8000 req/día del token
 FIN = "20:00"
+PERFIL = PERFILES["v2"]   # se cambia con --profile
 
 
 def ok(body):
@@ -52,12 +56,12 @@ CASOS = {
     "estado": [
         msg_step(ok("ALTA;Lucia"), "ALTA crea AC-0001"),
         msg_step(ok("ALTA;Mateo"), "ALTA crea AC-0002"),
-        msg_step(ok("CONSULTA;AC-0001"), "saldo inicial 0 (cuenta_id snake)"),
+        msg_step(ok("CONSULTA;AC-0001"), "saldo inicial (v1: 0 · v2: \"0.00\")"),
         msg_step(ok("DEPOSITO;AC-0001;250000"), "depósito sin límite, 'recieved'"),
         msg_step(ok("TRANSFER;AC-0001;AC-0002;40000"), "transferencia válida"),
-        msg_step(ok("TRANSFER;AC-0001;AC-0002;100001"), "límite por operación → E506"),
-        msg_step(ok("TRANSFER;AC-0001;AC-0002;100000"), "límite inclusivo 100000"),
-        msg_step(ok("CONSULTA;AC-0002"), "saldo destino 140000"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;50001"), "límite por operación (v2: 50001 → E506)"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;100000"), "100000 (v1: pasa · v2: E506)"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;50000"), "límite inclusivo (v2: 50000 pasa)"),
         msg_step(ok("ANULA;OP-0003"), "ANULA revierte"),
         msg_step(ok("ANULA;OP-0003"), "ANULA repetida → 200 ok:false"),
         msg_step(ok("ANULA;OP-0099"), "operación inexistente → E402"),
@@ -91,7 +95,8 @@ CASOS = {
         msg_step(ok("TRANSFER;AC-0001;AC-0002;5000"), "fallo E507 #1"),
         msg_step(ok("TRANSFER;AC-0001;AC-0002;100001"), "fallo E506 #2"),
         msg_step(ok("TRANSFER;AC-0001;AC-0002;5000"), "fallo E507 #3 → bloquea"),
-        msg_step(ok("TRANSFER;AC-0001;AC-0002;100"), "cuenta bloqueada → E510"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;100"), "cuenta bloqueada → E510 (v2: 423, intentos 1)"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;100"), "segundo intento bloqueado (v2: intentos 2)"),
         msg_step(ok("DEPOSITO;AC-0001;10"), "depósito a bloqueada permitido"),
         msg_step(ok("NOTAS"), "NOTAS estática"),
         msg_step(ok("HALT;x"), "HALT pide confirmación → E520"),
@@ -108,7 +113,7 @@ CASOS = {
 
 def send_original(step, seq):
     """Manda el paso al original SIN registrarlo: la línea se escribe tras comparar, con la conclusión verificada."""
-    hip = f"centinela: {step['hip']} (hipótesis: igual que el perfil v1)"
+    hip = f"centinela: {step['hip']} (hipótesis: igual que el perfil {PERFIL.nombre})"
     req = step["request"]
     if isinstance(req, dict):
         return prober.call(step["metodo"], step["ruta"], req, auth=step["auth"], seq=seq, hipotesis=hip, log=False)
@@ -135,14 +140,14 @@ def vuelta():
                 prober.append(e)
                 continue
             try:
-                status, body = replica.send(st)
+                status, body = replica.send(st, PERFIL)
             except Exception as exc:   # el request ya llegó al original: la línea del log no puede perderse
                 e["conclusion"] = f"no comparable: el reemplazo falló ({exc!r})"
                 prober.append(e)
                 raise
             igual = status == e["status"] and same(body, e["response"])
-            e["conclusion"] = ("confirmada: igual que el perfil v1" if igual else
-                               f"REFUTADA: el perfil v1 responde {status} {json.dumps(body, ensure_ascii=False)}")
+            e["conclusion"] = (f"confirmada: igual que el perfil {PERFIL.nombre}" if igual else
+                               f"REFUTADA: el perfil {PERFIL.nombre} responde {status} {json.dumps(body, ensure_ascii=False)}")
             prober.append(e)
             if not igual:
                 diffs.append({"id": e["id"], "caso": nombre, "hip": st["hip"],
@@ -159,7 +164,7 @@ def write_status(history):
         "# Centinela del original", "",
         f"> [!{'warning' if last['diffs'] else 'tip'}] Estado: {estado} · última vuelta {last['hora']} · "
         f"{last['n']} requests · `python bench/sentinel.py`",
-        "", "Compara cada respuesta del original con el reemplazo (perfil v1). Una diferencia = el original cambió. "
+        "", f"Compara cada respuesta del original con el reemplazo (perfil {PERFIL.nombre}). Una diferencia = el original cambió. "
         "Respuesta: [[Incidente]] → spec §6 → perfil `v2`.", "",
         "| Hora | Seq | Requests | Diferencias |", "|---|---|---|---|",
     ]
@@ -185,7 +190,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--once", action="store_true")
     ap.add_argument("--every", type=float, default=10, help="minutos entre vueltas")
+    ap.add_argument("--profile", choices=sorted(PERFILES), default="v2", help="perfil del reemplazo con que se compara")
     a = ap.parse_args()
+    global PERFIL
+    PERFIL = PERFILES[a.profile]
     history = []
     while True:
         if log_lines() >= DAILY_BUDGET_STOP:

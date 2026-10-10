@@ -9,6 +9,12 @@ Uso:
     python bench/diff.py --split holdout       # solo casos hold-out (hash de la seq)
     python bench/diff.py -v                    # muestra cada diferencia
     python bench/diff.py --seq s17-anula       # solo una secuencia (repetible)
+    python bench/diff.py --profile v1          # fuerza un perfil para todos los casos (por defecto: auto)
+
+Versiones (incidente, spec §6): el original pasó de v1 a v2 entre las 15:30 y las 15:55. Con --profile auto
+cada caso se compara con el perfil de la versión con que se grabó: id de log ≤ CORTE_V2 (y los 20 ejemplos de la
+mañana) → v1; id > CORTE_V2 (regresión `v2-*`, exp26+ y centinela posterior) → v2. --target usa el perfil
+desplegado en el destino, así que contra un despliegue solo tiene sentido la era que ese perfil reproduce.
 """
 import argparse
 import hashlib
@@ -77,6 +83,15 @@ def cases():
     return out
 
 
+CORTE_V2 = 3164   # último id de log grabado con v1 (centinela-1550); desde el 3165 todo es v2 (regresión v2-*)
+
+
+def era(case):
+    """'v1' o 'v2' según el id de log del primer paso del caso (los ejemplos 'ejN' son de la mañana → v1)."""
+    first = case[0]["id"] if case else None
+    return "v2" if isinstance(first, int) and first > CORTE_V2 else "v1"
+
+
 def split_of(seq):
     return "holdout" if int(hashlib.sha1(seq.encode()).hexdigest(), 16) % 5 == 0 else "dev"
 
@@ -91,14 +106,14 @@ class InProcess:
     def reset(self):
         self.main.STORE.reset(self.token)
 
-    def send(self, step):
+    def send(self, step, perfil=None):
         headers = {b"host": b"localhost"}
         auth = {"propio": f"Bearer {self.token}", "invalido": "Bearer x", "ninguno": None}.get(step.get("auth"), None)
         if auth:
             headers[b"authorization"] = auth.encode()
         req = step.get("request")
         raw = json.dumps(req, ensure_ascii=False).encode() if isinstance(req, (dict, list)) else (req or "").encode()
-        status, body = self.main.handle(step["metodo"], step["ruta"], headers, raw)
+        status, body = self.main.handle(step["metodo"], step["ruta"], headers, raw, perfil)
         return (status, "") if step["metodo"] == "HEAD" else (status, body)   # el adaptador ASGI vacía el cuerpo en HEAD
 
 
@@ -140,7 +155,7 @@ class Remote:
     def reset(self):
         self._call("POST", "/__reset", b"", f"Bearer {self.token}")
 
-    def send(self, step):
+    def send(self, step, perfil=None):   # el perfil lo decide el despliegue (BEHAVIOR_PROFILE)
         auth = {"propio": f"Bearer {self.token}", "invalido": "Bearer x", "ninguno": None}.get(step.get("auth"), None)
         req = step.get("request")
         raw = json.dumps(req, ensure_ascii=False).encode() if isinstance(req, (dict, list)) else (req or "").encode()
@@ -153,11 +168,20 @@ def main():
     ap.add_argument("--split", choices=["dev", "holdout", "all"], default="all")
     ap.add_argument("-v", action="store_true")
     ap.add_argument("--seq", action="append", help="solo estas secuencias (repetible)")
+    ap.add_argument("--profile", choices=["auto", "v1", "v2"], default="auto",
+                    help="perfil del reemplazo en proceso: auto = por era del caso (CORTE_V2)")
+    ap.add_argument("--era", choices=["v1", "v2", "all"], default="all", help="solo casos grabados en esa versión")
     a = ap.parse_args()
     tgt = Remote(a.target) if a.target else InProcess()
+    from app.profiles import PERFILES
     total = ok_cases = steps = ok_steps = ok_status = 0
+    por_era = defaultdict(lambda: [0, 0])
     fails = defaultdict(int)
     for seq, case in cases():
+        e = era(case)
+        if a.era != "all" and e != a.era:
+            continue
+        perfil = PERFILES[e if a.profile == "auto" else a.profile]
         if a.split != "all" and split_of(seq) != a.split:
             continue
         if a.seq and seq not in a.seq:
@@ -166,7 +190,7 @@ def main():
         total += 1
         case_ok = True
         for st in case:
-            status, body = tgt.send(st)
+            status, body = tgt.send(st, perfil)
             steps += 1
             good = status == st["status"] and same(body, st["response"])
             ok_steps += good
@@ -176,13 +200,17 @@ def main():
                 key = st["response"].get("error") if isinstance(st["response"], dict) else str(st["status"])
                 fails[key or "ok"] += 1
                 if a.v:
-                    print(f"  ✗ [{seq}] #{st['id']} {st.get('metodo')} {st.get('ruta')} {json.dumps(st.get('request'), ensure_ascii=False)}\n"
+                    print(f"  ✗ [{seq}|{perfil.nombre}] #{st['id']} {st.get('metodo')} {st.get('ruta')} {json.dumps(st.get('request'), ensure_ascii=False)}\n"
                           f"      esperado {st['status']} {json.dumps(st['response'], ensure_ascii=False)}\n"
                           f"      obtenido {status} {json.dumps(body, ensure_ascii=False)}")
         ok_cases += case_ok
+        por_era[e][0] += case_ok
+        por_era[e][1] += 1
     pct = lambda x, n: f"{100 * x / n:.1f}%" if n else "—"
     print(f"Casos {ok_cases}/{total} ({pct(ok_cases, total)}) · pasos {ok_steps}/{steps} ({pct(ok_steps, steps)}) · "
-          f"status {pct(ok_status, steps)} · split={a.split}")
+          f"status {pct(ok_status, steps)} · split={a.split} · profile={a.profile}")
+    for e, (ok_e, n_e) in sorted(por_era.items()):
+        print(f"  era {e} (log {'≤' if e == 'v1' else '>'} {CORTE_V2}): casos {ok_e}/{n_e} ({pct(ok_e, n_e)})")
     if fails:
         print("Fallos por respuesta esperada:", dict(sorted(fails.items(), key=lambda kv: -kv[1])))
     sys.exit(0 if ok_cases == total else 1)

@@ -18,8 +18,8 @@ PERFIL = cargar(config.BEHAVIOR_PROFILE)
 STORE = InMemoryStore()
 
 
-def _error(code, extra=None):
-    spec = PERFIL.catalogo[code]
+def _error(code, extra=None, perfil=None):
+    spec = (perfil or PERFIL).catalogo[code]
     return spec.status, {"error": code, "mensaje": spec.mensaje, **(extra or {})}
 
 
@@ -30,16 +30,18 @@ def _token(headers):
     return None
 
 
-def handle(method, path, headers, raw):
-    destino = PERFIL.rutas.get((method, path))
+def handle(method, path, headers, raw, perfil=None):
+    """`perfil` permite a los testers elegir la versión por caso (bench/diff.py); por defecto, el del entorno."""
+    perfil = perfil or PERFIL
+    destino = perfil.rutas.get((method, path))
     if destino is None:
-        return _error("E404")
+        return _error("E404", perfil=perfil)
     token = _token(headers)
     if token is None:
         host = headers.get(b"host", b"").decode("latin-1").split(":")[0].lower()
         if destino == "health" and host in config.HEALTHCHECK_HOSTS:   # ADR-004
             return 200, {"ok": True}
-        return _error("E001")
+        return _error("E001", perfil=perfil)
     if destino == "health":
         return 200, {"ok": True}
     if destino == "reset":
@@ -47,11 +49,11 @@ def handle(method, path, headers, raw):
         return 200, {"ok": True}
     estado = STORE.get(token)
     if estado.halted:                 # HALT confirmado: /health y /__reset siguen vivos, el resto no
-        return _error("E599")
+        return _error("E599", perfil=perfil)
     try:
-        return procesar_msg(raw, estado, PERFIL.orden_msg)
+        return procesar_msg(raw, estado, perfil)
     except DomainError as e:
-        return _error(e.code, e.extra)
+        return _error(e.code, e.extra, perfil)
 
 
 async def _read_body(receive):
