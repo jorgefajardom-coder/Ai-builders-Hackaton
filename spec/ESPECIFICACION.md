@@ -126,6 +126,7 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 | CH-02 | Aridad exactamente 1 (0, 2 o 3 argumentos → E302); valida el control (E201/E202) | 1699, 1701, 1702, 1790, 1791 | confirmado |
 | CH-03 | **Confirmación:** `HALT;1;<ctrl>` (argumento exactamente `1`) detiene el servicio **solo para ese token**: responde `503 {"error":"E599","mensaje":"service halted"}`; `01`, `0`, `x`, `SI` no confirman (E520) | 2702–2706 | confirmado |
 | CH-04 | Con el servicio detenido, **todo** `/msg` (también PING y cuerpos inválidos) da E599; `/health` (200) y las rutas inexistentes (E404) no cambian; `/__reset` responde 200, reactiva el servicio y borra el estado | 2707–2714 | confirmado |
+| CH-05 | HALT no cambió en v2: `HALT;01` → E520, `HALT;1` → 503 E599, todo `/msg` → E599, `/health` 200, `/__reset` reactiva | 4178–4185 | confirmado |
 
 ### ANULA
 | ID | Comportamiento | Evidencia | Confianza |

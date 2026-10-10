@@ -35,6 +35,11 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 | 16:08 | exp29–30: sanidad del resto + barrido de un paso (pedido tras ver 1 test que falla en su primer request) | 20/20 predicciones; 191 requests sin estado: 0 diferencias contra el perfil v2 |
 | 16:10 | Perfil `v2` en el reemplazo (hereda de v1; 3 parámetros + 1 entrada del catálogo); `v2` por defecto | `diff.py` 100 % en ambas eras |
 | 16:12 | `diff.py` por era (`CORTE_V2 = 3164`, `--profile`), centinela contra v2 | v1: 154/154 · v2: 48/48 casos |
+| 16:15 | Deploy de v2 en Railway (`0b8ffbf`) | producción responde v2 (`"saldo":"1235.56"`) |
+| 16:26 | 3.ª corrida oficial | 90/100 (+3); coincidió con nuestro diff contra Railway → contaminada |
+| 16:50 | Fix JSON estricto (`NaN`/`Infinity` → E100) desplegado (`0cf7548`) | hallado por el equipo; evidencia propia log 4121–4125 |
+| 17:00 | `HALT;1` en v2 (exp32) | sin cambios respecto a v1 (log 4178–4185) |
+| 17:05 | Fuzzer diferencial (`bench/fuzz.py`) | piloto 5/5 secuencias; ver [[Plan de evaluación]] |
 
 ## Decisiones tomadas
 - **ADR-011 aplicado tal cual:** `v2 = replace(V1, …)` con `limite_transfer=50000`, `formato_saldo="decimal2"`, `e510_intentos=True` y `E510 → 423`. Los comandos leen esos parámetros del perfil que reciben; no hay `if INCIDENT`. Rollback = `BEHAVIOR_PROFILE=v1`. → [[Decisiones]]
@@ -46,10 +51,11 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 |---|---|---|---|
 | Casos grabados en v1 (log ≤ 3164) | 154/154 | — | 154/154 con perfil v1 |
 | Casos grabados en v2 (log > 3164) | — | 25/47 (53,2 %) | **48/48 (100 %)** |
-| Set oficial (100 tests) | 87/100 | 87/100 | pendiente de deploy |
+| Set oficial (100 tests) | 87/100 (14:45) | 87/100 (16:05) | **90/100** (16:26, con v2 desplegada; contaminada por nuestro diff en paralelo) · la corrida que cuenta es la de después de las 20:00 |
 
 ## Lecciones
 - Un centinela solo ve lo que cubre y cuando corre: el nuestro estaba en verde porque no dio vueltas durante la ventana del cambio. La **regresión completa del corpus** fue lo que lo encontró; correrla justo después de un aviso es barato (~530 requests).
 - Separar **cambios** de **consecuencias**: 40 diferencias se reducían a 3 causas; el límite nuevo arrastraba saldos, ANULA y numeración.
 - Tener el perfil como dato (ADR-011) hizo el arreglo de 3 parámetros; las dos versiones conviven y se prueban por era.
 - Las herramientas de prueba tienen que saber de versiones: sin `CORTE_V2`, el log mezclaba dos verdades.
+- **El estado es por token**: probar contra el deploy mientras el portal evalúa contamina ambas cosas. Regla: con el portal evaluando, nadie toca el entrypoint.
