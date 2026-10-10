@@ -4,7 +4,8 @@ El estado incluye los contadores de IDs, así /__reset los reinicia también (AD
 """
 from dataclasses import dataclass, field
 
-LIMITE_OPERACION = 100_000  # 100000 pasa (ejemplo 10), 120000 da E506 (ejemplo 9). Frontera exacta: por confirmar.
+LIMITE_OPERACION = 100_000  # ≤ 100000 inclusivo (log 1477, 1478)
+FALLOS_PARA_BLOQUEO = 3     # 3 TRANSFER seguidas con E506/E507 bloquean la cuenta origen (log 1719–1722, 1748–1751)
 
 
 @dataclass
@@ -21,6 +22,8 @@ class Operacion:
 class Estado:
     cuentas: dict = field(default_factory=dict)       # cuentaId -> {"nombre": str, "saldo": int}
     operaciones: dict = field(default_factory=dict)   # operacionId -> Operacion
+    fallos_seguidos: dict = field(default_factory=dict)  # cuentaId -> TRANSFER fallidas seguidas (solo E506/E507)
+    bloqueadas: set = field(default_factory=set)         # cuentas que ya no pueden transferir (E510)
     seq_cuenta: int = 0
     seq_operacion: int = 0
 

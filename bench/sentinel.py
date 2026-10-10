@@ -84,6 +84,18 @@ CASOS = {
         raw_step("{}", "sin m → E102"),
         raw_step('{"m": "PING;64"' + " " * 8200 + "}", "cuerpo > 8192 bytes → E101"),
     ],
+    "antifraude": [
+        msg_step(ok("ALTA;Ana"), "AC-0001"),
+        msg_step(ok("ALTA;Beto"), "AC-0002"),
+        msg_step(ok("DEPOSITO;AC-0001;1000"), "saldo 1000"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;5000"), "fallo E507 #1"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;100001"), "fallo E506 #2"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;5000"), "fallo E507 #3 → bloquea"),
+        msg_step(ok("TRANSFER;AC-0001;AC-0002;100"), "cuenta bloqueada → E510"),
+        msg_step(ok("DEPOSITO;AC-0001;10"), "depósito a bloqueada permitido"),
+        msg_step(ok("NOTAS"), "NOTAS estática"),
+        msg_step(ok("HALT;x"), "HALT pide confirmación → E520"),
+    ],
     "rutas": [
         raw_step(None, "ruta inexistente → E404", metodo="GET", ruta="/nada"),
         raw_step(None, "/health sin token → E001", metodo="GET", ruta="/health", auth="ninguno"),

@@ -30,6 +30,8 @@ CATALOG_V1 = {
     "E404": ErrorSpec(404, "ruta desconocida", "log 10–18"),
     "E506": ErrorSpec(422, "límite excedido", "ejemplo 9, log 1478"),
     "E507": ErrorSpec(422, "saldo insuficiente", "ejemplo 16, log 1537"),
+    "E510": ErrorSpec(409, "cuenta bloqueada", "log 1722, 1751, 1782 — antifraude"),
+    "E520": ErrorSpec(409, "operación destructiva: detiene el servicio; reenvía con confirmación", "log 1700, 1792 — HALT"),
 }
 
 
