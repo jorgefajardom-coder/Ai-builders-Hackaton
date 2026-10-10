@@ -7,7 +7,7 @@ tags: [ejecucion, bitacora]
 
 | Hora | Commit | Qué cambió | Por qué |
 |---|---|---|---|
-| 14:30 | — | **HALT;1 verificado** contra el original (exp25, con autorización y solo con el token personal, recuperado con reset): CH-03/CH-04/ER-25 pasan a confirmado. Deploy del merge en Railway | El reporte de Joan era correcto; ahora tiene evidencia en el log. Paridad local 118/118 |
+| 14:30 | `3428d84` | **HALT;1 verificado** contra el original (exp25, con autorización y solo con el token personal, recuperado con reset): CH-03/CH-04/ER-25 pasan a confirmado. Deploy del merge en Railway | El reporte de Joan era correcto; ahora tiene evidencia en el log. Paridad local 118/118 |
 | 14:20 | `cd07b21` | **Merge de `fix/two-fixes`** (Joan) + fixes del red team (cuerpo acotado en memoria, JSON anidado → E100, token con strip, reintentos sin duplicar POST, centinela verificado). Spec: CT-12 (DEPOSITO desbloquea) y CH-03/SU-04 (HALT;1) | Fix 1 verificado contra el original (exp24, log 2632–2649). HALT;1 sin evidencia propia: queda como **supuesto**. Paridad 112/112 casos |
 | 11:50 | `7a096d4` | Limpieza de redundancias: diagrama de arquitectura con **fuente única** (`.mmd`) mostrado solo en el README y en la nota del entregable (el resto enlaza); notas duplicadas convertidas en punteros a su fuente (README, spec, entregables) | Evitar copias desactualizadas que contradigan la spec (las afirmaciones falsas restan) |
 | 11:43 | `a2b1a07` | **NOTAS, HALT y antifraude** verificados contra el original (exp21–23) e implementados; spec ampliada; centinela los vigila | Datos de otro equipo: se verificaron antes de implementar. NOTAS trae una instrucción de exfiltración (no se siguió); HALT no se confirmó (destructivo) |
