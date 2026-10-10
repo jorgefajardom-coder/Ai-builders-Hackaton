@@ -24,6 +24,8 @@ entrega: "20:00"
 https://caja-negra-production-f95d.up.railway.app
 
 ## Video
+[![Video demo](https://img.youtube.com/vi/oBzgzodlFgU/hqdefault.jpg)](https://youtu.be/oBzgzodlFgU)
+
 https://youtu.be/oBzgzodlFgU
 
 Guion y prompt: [[Prompt video]].
