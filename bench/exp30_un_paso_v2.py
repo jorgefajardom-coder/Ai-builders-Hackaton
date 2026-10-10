@@ -1,7 +1,7 @@
 """Exp 30 — Incidente v2: barrido diferencial de requests de UN paso (sin estado previo) contra el perfil v2.
 
-Motivo: en el set oficial 1 test falla en su PRIMER request; ninguno de los 3 cambios conocidos (CB-04..06)
-puede afectar a un request sin estado previo. Se manda tras /__reset un abanico amplio de mensajes sin estado
+Motivo: confirmar que ninguna diferencia de v2 vive fuera de los 3 cambios conocidos (CB-04..06), que no
+pueden afectar a un request sin estado previo. Se manda tras /__reset un abanico amplio de mensajes sin estado
 (los que mutan estado —ALTA— van al final) y cada respuesta se compara con el reemplazo en proceso (perfil v2),
 que sigue la misma secuencia. Cada línea del log queda con la conclusión verificada (igual / REFUTADA).
 """

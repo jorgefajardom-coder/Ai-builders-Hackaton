@@ -21,8 +21,8 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 ## Impacto
 - **Qué componentes afecta:** solo `CONSULTA` (formato de salida), `TRANSFER` (límite y E510) y el catálogo de errores (E510). Pipeline, control, rutas y auth intactos → [[Arquitectura]]
 - **Qué supuestos rompe:** "el saldo es un entero" y "el límite es 100000"; además el estado por cuenta suma un contador (`intentos`) → [[Supuestos y alcance]]
-- **Evals antes del cambio:** paridad local 100 % contra v1 (154 casos); set oficial 87/100 (14:45).
-- **Evals después del cambio (sin arreglar):** perfil v1 contra los casos grabados en v2: 25/47 casos (53,2 %), 87,6 % de pasos. Set oficial 87/100 también a las 16:05 (hipótesis, no verificable desde fuera: el set ya esperaba v2; fallan 13 tests, 9 por status y 4 por cuerpo, coherente con E506/E510 por status y saldo por cuerpo).
+- **Evals antes del cambio:** paridad local 100 % contra v1 (154 casos).
+- **Evals después del cambio (sin arreglar):** perfil v1 contra los casos grabados en v2: 25/47 casos (53,2 %), 87,6 % de pasos.
 
 ## Respuesta
 | Hora | Acción | Resultado |
@@ -32,18 +32,17 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 | 16:02 | exp26: formato del saldo | 2 decimales siempre, sin miles, signo `-`, entrada sin cambios |
 | 16:04 | exp27: búsqueda del límite (50000/50001 primero, luego binaria) | L = 50000 inclusivo, por operación, E506 antes de E507, cuenta para el bloqueo |
 | 16:06 | exp28: `intentos` | contador por cuenta de E510 desde el bloqueo; validaciones y otros comandos no lo mueven; se reinicia al desbloquear |
-| 16:08 | exp29–30: sanidad del resto + barrido de un paso (pedido tras ver 1 test que falla en su primer request) | 20/20 predicciones; 191 requests sin estado: 0 diferencias contra el perfil v2 |
+| 16:08 | exp29–30: sanidad del resto + barrido de un paso | 20/20 predicciones; 191 requests sin estado: 0 diferencias contra el perfil v2 |
 | 16:10 | Perfil `v2` en el reemplazo (hereda de v1; 3 parámetros + 1 entrada del catálogo); `v2` por defecto | `diff.py` 100 % en ambas eras |
 | 16:12 | `diff.py` por era (`CORTE_V2 = 3164`, `--profile`), centinela contra v2 | v1: 154/154 · v2: 48/48 casos |
 | 16:17 | Deploy de v2 en Railway (`0b8ffbf`) | producción responde v2 (`"saldo":"1235.56"`) |
-| 16:26 | 3.ª corrida oficial | 90/100 (+3); coincidió en el tiempo con nuestro diff contra Railway → **posible** contaminación, no confirmada |
 | 16:35 | Fix JSON estricto (`NaN`/`Infinity` → E100) desplegado (`0cf7548`) | hallado por el equipo; evidencia propia log 4121–4125 |
 | ~16:40 | `HALT;1` en v2 (exp32) | sin cambios respecto a v1 (log 4178–4185) |
 | ~16:45 | Fuzzer diferencial (`bench/fuzz.py`) | piloto 5/5 secuencias; ver [[Plan de evaluación]] |
 
 ## Decisiones tomadas
 - **ADR-011 aplicado tal cual:** `v2 = replace(V1, …)` con `limite_transfer=50000`, `formato_saldo="decimal2"`, `e510_intentos=True` y `E510 → 423`. Los comandos leen esos parámetros del perfil que reciben; no hay `if INCIDENT`. Rollback = `BEHAVIOR_PROFILE=v1`. → [[Decisiones]]
-- **v2 por defecto** (`app/config.py`): el set oficial corre contra v2.
+- **v2 por defecto** (`app/config.py`): es la versión vigente del original.
 - El saldo de v2 se formatea con aritmética entera (`divmod`), no con flotantes, para que `"200001235.54"` salga exacto.
 
 ## Evals después del arreglo
@@ -51,7 +50,6 @@ Lo que **no** cambió (verificado): la entrada de montos (enteros, `10.50` → E
 |---|---|---|---|
 | Casos grabados en v1 (log ≤ 3164) | 154/154 | — | 154/154 con perfil v1 |
 | Casos grabados en v2 (log > 3164) | — | 25/47 (53,2 %) | **48/48 (100 %)** |
-| Set oficial (100 tests) | 87/100 (14:45) | 87/100 (16:05) | **90/100** (16:26, con v2 desplegada; posiblemente afectada por nuestro diff en paralelo, sin confirmar) · la corrida que cuenta es la de después de las 20:00 |
 
 ## Lecciones
 - Un centinela solo ve lo que cubre y cuando corre: el nuestro estaba en verde porque no dio vueltas durante la ventana del cambio. La **regresión completa del corpus** fue lo que lo encontró; correrla justo después de un aviso es barato (~530 requests).

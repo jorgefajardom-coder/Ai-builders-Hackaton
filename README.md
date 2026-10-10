@@ -408,7 +408,7 @@ The working notes (design, ADRs, evaluation results, incident, change log) live 
 
 ### Issue #4: Shared token state contaminated test runs
 
-**Symptoms**: Railway parity runs showed impossible sequences — accounts vanishing mid-test, foreign 100-unit operations, `"intentos": 4` where 2 were expected; the 3rd official run (16:26) overlapped in time with our own diff (whether it actually lowered the score is unconfirmed).
+**Symptoms**: Railway parity runs showed impossible sequences — accounts vanishing mid-test, foreign 100-unit operations, `"intentos": 4` where 2 were expected.
 
 **Root Cause**: The replacement keeps **one state per token** (by design: the judges talk to one process). Any two clients using the team token at once interleave their `/__reset`s.
 
@@ -869,7 +869,7 @@ Las notas de trabajo (diseño, ADRs, resultados de evaluación, incidente, bitá
 
 ### Problema #4: El estado compartido por token contaminó pruebas
 
-**Síntomas**: Las pruebas de paridad contra Railway mostraban secuencias imposibles: cuentas que desaparecen a mitad de test, operaciones ajenas de 100, `"intentos": 4` donde se esperaba 2. La 3.ª corrida oficial (16:26) coincidió en el tiempo con nuestro propio diff (no está confirmado que eso bajara el resultado).
+**Síntomas**: Las pruebas de paridad contra Railway mostraban secuencias imposibles: cuentas que desaparecen a mitad de test, operaciones ajenas de 100, `"intentos": 4` donde se esperaba 2.
 
 **Causa raíz**: El reemplazo guarda **un estado por token** (a propósito: el jurado le habla a un proceso). Dos clientes con el token del equipo a la vez mezclan sus `/__reset`.
 

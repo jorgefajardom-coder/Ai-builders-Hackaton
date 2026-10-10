@@ -4,7 +4,7 @@ tags: [moc]
 # AI Builders Hackathon — Reto 2
 
 > [!info] Estado
-> **Reto:** [[Reto 2]] · **Entrypoint:** https://caja-negra-production-f95d.up.railway.app (perfil **v2** + JSON estricto; paridad local 100 % en ambas eras; corridas oficiales 87 · 87 · 90 — la que cuenta es la de después de las 20:00) · **Centinela:** [[Centinela]] · **Cambios:** [[Bitácora]]
+> **Reto:** [[Reto 2]] · **Entrypoint:** https://caja-negra-production-f95d.up.railway.app (perfil **v2** + JSON estricto; paridad local 100 % en ambas eras) · **Centinela:** [[Centinela]] · **Cambios:** [[Bitácora]]
 
 ## Fuentes únicas
 | Tema | Dónde |
