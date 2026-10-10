@@ -41,6 +41,7 @@ Black-box Reverse Engineering · Evidence-Driven Specification · Behavior-Exact
 - [Evaluation Plan](#evaluation-plan)
 - [Findings So Far](#findings-so-far)
 - [Technical Stack](#technical-stack)
+- [Documentation Site](#documentation-site)
 - [Project Structure](#project-structure)
 - [Installation & Usage](#installation--usage)
 - [Timeline](#timeline)
@@ -339,6 +340,20 @@ Detailed working notes: [`docs/01 Problema/Hallazgos iniciales.md`](docs/01%20Pr
 
 ---
 
+## Documentation Site
+
+All project documentation (this README, the Obsidian vault, live experiment stats and git history) is compiled into a single page: [`site/index.html`](site/index.html).
+
+| Mechanism | What it does |
+|---|---|
+| `python tools/build_docs.py` | Builds `site/index.html` once |
+| `python tools/build_docs.py --watch` | Rebuilds every time a doc, the log or git changes |
+| `python tools/install_hooks.py` | Git `pre-commit` hook: every commit ships an up-to-date site |
+| `.github/workflows/docs.yml` | On every push to `main`, builds and publishes to GitHub Pages |
+| Live reload | When served over HTTP, the page polls `version.json` and reloads itself when a new build lands |
+
+---
+
 ## Project Structure
 
 ```
@@ -357,7 +372,9 @@ Ai-builders-Hackaton/
 ├── app/                         ← B · replacement (never talks to the original)   [12:00 →]
 ├── spec/ESPECIFICACION.md       ← deliverable spec                                  [→ 20:00]
 ├── material/                    ← challenge README + 20 examples
-└── docs/                        ← Obsidian vault (design, ADRs, evaluation, incident)
+├── docs/                        ← Obsidian vault (design, ADRs, evaluation, incident)
+├── site/index.html              ← generated documentation site
+└── tools/build_docs.py          ← site generator (--watch for live rebuild)
 ```
 
 ---
@@ -493,6 +510,7 @@ Ingeniería inversa de caja negra · Especificación basada en evidencia · Reem
 - [Plan de Evaluación](#plan-de-evaluación)
 - [Hallazgos a la Fecha](#hallazgos-a-la-fecha)
 - [Stack Técnico](#stack-técnico)
+- [Sitio de Documentación](#sitio-de-documentación)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Instalación y Uso](#instalación-y-uso)
 - [Cronograma](#cronograma)
@@ -791,6 +809,20 @@ Notas de trabajo detalladas: [`docs/01 Problema/Hallazgos iniciales.md`](docs/01
 
 ---
 
+## Sitio de Documentación
+
+Toda la documentación del proyecto (este README, el vault de Obsidian, las estadísticas en vivo de los experimentos y el historial de git) se compila en una sola página: [`site/index.html`](site/index.html).
+
+| Mecanismo | Qué hace |
+|---|---|
+| `python tools/build_docs.py` | Genera `site/index.html` una vez |
+| `python tools/build_docs.py --watch` | Regenera cada vez que cambia una nota, el log o git |
+| `python tools/install_hooks.py` | Hook `pre-commit` de git: cada commit lleva el sitio actualizado |
+| `.github/workflows/docs.yml` | En cada push a `main`, genera y publica en GitHub Pages |
+| Recarga en vivo | Servida por HTTP, la página consulta `version.json` y se recarga sola cuando hay una versión nueva |
+
+---
+
 ## Estructura del Proyecto
 
 ```
@@ -809,7 +841,9 @@ Ai-builders-Hackaton/
 ├── app/                         ← B · reemplazo (nunca habla con el original)   [12:00 →]
 ├── spec/ESPECIFICACION.md       ← especificación entregable                     [→ 20:00]
 ├── material/                    ← README del reto + 20 ejemplos
-└── docs/                        ← vault de Obsidian (diseño, ADRs, evaluación, incidente)
+├── docs/                        ← vault de Obsidian (diseño, ADRs, evaluación, incidente)
+├── site/index.html              ← sitio de documentación generado
+└── tools/build_docs.py          ← generador del sitio (--watch para regenerar en vivo)
 ```
 
 ---
