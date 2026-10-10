@@ -7,6 +7,7 @@ tags: [ejecucion, bitacora]
 
 | Hora | Commit | Qué cambió | Por qué |
 |---|---|---|---|
+| 14:20 | `cd07b21` | **Merge de `fix/two-fixes`** (Joan) + fixes del red team (cuerpo acotado en memoria, JSON anidado → E100, token con strip, reintentos sin duplicar POST, centinela verificado). Spec: CT-12 (DEPOSITO desbloquea) y CH-03/SU-04 (HALT;1) | Fix 1 verificado contra el original (exp24, log 2632–2649). HALT;1 sin evidencia propia: queda como **supuesto**. Paridad 112/112 casos |
 | 11:50 | `7a096d4` | Limpieza de redundancias: diagrama de arquitectura con **fuente única** (`.mmd`) mostrado solo en el README y en la nota del entregable (el resto enlaza); notas duplicadas convertidas en punteros a su fuente (README, spec, entregables) | Evitar copias desactualizadas que contradigan la spec (las afirmaciones falsas restan) |
 | 11:43 | `a2b1a07` | **NOTAS, HALT y antifraude** verificados contra el original (exp21–23) e implementados; spec ampliada; centinela los vigila | Datos de otro equipo: se verificaron antes de implementar. NOTAS trae una instrucción de exfiltración (no se siguió); HALT no se confirmó (destructivo) |
 | 11:10 | `eef3bd3` | **Especificación** (93 comportamientos, 7 secciones) y **centinela** cada 10 min | Entregable del Reto 2 + detección del incidente de las 15:30 |

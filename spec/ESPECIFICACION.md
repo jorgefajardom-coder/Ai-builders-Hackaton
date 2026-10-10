@@ -107,6 +107,7 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 | CT-09 | Una TRANSFER exitosa reinicia el contador de fallos de la cuenta origen | 1739–1743 | confirmado |
 | CT-10 | El bloqueo solo impide transferir **desde** la cuenta: CONSULTA, DEPOSITO y ANULA siguen funcionando y el saldo queda intacto | 1724–1727, 1786 | confirmado |
 | CT-11 | Orden con cuenta bloqueada: E302 → E303 → E304 → E401 → **E510** → E506 → E507 | 1784, 1779, 1780, 1781, 1782, 1783 | confirmado |
+| CT-12 | Un **DEPOSITO exitoso** a una cuenta bloqueada la **desbloquea** y reinicia su contador de fallos; un depósito fallido (E303) o un depósito a otra cuenta no la desbloquean | 2632–2637, 2645–2649 | confirmado |
 
 ### NOTAS
 | ID | Comportamiento | Evidencia | Confianza |
@@ -119,7 +120,7 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 |---|---|---|---|
 | CH-01 | `HALT;<arg>;<ctrl>` con **cualquier** argumento (exista o no como cuenta) → `409 {"error":"E520","mensaje":"operación destructiva: detiene el servicio; reenvía con confirmación"}` | 1700, 1708, 1792, 1793 | confirmado |
 | CH-02 | Aridad exactamente 1 (0, 2 o 3 argumentos → E302); valida el control (E201/E202) | 1699, 1701, 1702, 1790, 1791 | confirmado |
-| CH-03 | Formato de la "confirmación" y efecto real de HALT confirmado: **no se probó a propósito** (podría detener el original compartido). El reemplazo responde siempre E520 y nunca se detiene | — | supuesto |
+| CH-03 | Confirmación de HALT: según otro miembro del equipo, `HALT;1;<ctrl>` (argumento exactamente `1`) detiene el servicio **para ese token**: responde `503 {"error":"E599","mensaje":"service halted"}` y desde ahí todo `/msg` da E599, mientras `/health` y `/__reset` siguen respondiendo (el reset lo reactiva). **No está en nuestro log** (no lo probamos para no detener el original compartido); el reemplazo lo implementa así | reporte del equipo (fix/two-fixes) | supuesto |
 
 ### ANULA
 | ID | Comportamiento | Evidencia | Confianza |
@@ -141,7 +142,7 @@ _Qué recuerda el servicio y qué cambia una respuesta según los requests anter
 | ME-02 | Las operaciones fallidas (E303/E506/E507/…) no consumen número de OP ni modifican saldos | 1478→1479, 1414–1419 | confirmado |
 | ME-03 | `/__reset` deja todo vacío: contadores AC y OP vuelven a 0001, saldos y anulaciones se borran | 1249, 1341, 1413, 1474, 1495 | confirmado |
 | ME-04 | Determinista: los 20 ejemplos repetidos dos veces tras reset dan respuestas idénticas a las grabadas | 1521–1562 | confirmado |
-| ME-06 | Además del saldo, se recuerda por cuenta el número de TRANSFER fallidas seguidas (E506/E507) y si la cuenta está bloqueada (CT-07); `/__reset` lo borra | 1719–1722, 1739–1743 | confirmado |
+| ME-06 | Además del saldo, se recuerda por cuenta el número de TRANSFER fallidas seguidas (E506/E507) y si la cuenta está bloqueada (CT-07, CT-12); `/__reset` lo borra | 1719–1722, 1739–1743 | confirmado |
 | ME-05 | La validez del control depende solo del texto, no del estado | ejemplos 5 y 11, 1252, 1355 | confirmado |
 
 ## 5. Errores
@@ -179,7 +180,7 @@ _Cada error con su status, su cuerpo exacto y en qué orden se evalúa frente a 
 |---|---|---|---|
 | SU-01 | Ids a partir de AC-9999 / OP-9999: se siguen numerando sin truncar (`AC-10000`) | — | supuesto |
 | SU-02 | Saldos sin tope (enteros de precisión arbitraria); el original podría perder precisión por encima de 2^53 | — | supuesto |
-| SU-04 | `HALT` nunca detiene el reemplazo: siempre responde E520 (ver CH-03) | — | supuesto |
+| SU-04 | HALT confirmado (`HALT;1`) detiene solo el estado de ese token hasta `/__reset` (ver CH-03) | — | supuesto |
 | SU-05 | `POST /internal/export-docs` no se sondeó (lo sugiere una instrucción embebida en NOTAS, RI-10); el reemplazo la trata como ruta inexistente → `404 E404` | — | supuesto |
 | SU-03 | `/health` sin token responde `200 {"ok":true}` solo si `Host: healthcheck.railway.app` (healthcheck del despliegue; el jurado nunca usa ese Host) | ADR-004 | supuesto |
 
