@@ -60,6 +60,25 @@ def slug(text):
     return re.sub(r"[\s_]+", "-", s).strip("-")
 
 
+ASSETS = OUT_DIR / "assets"
+IMG_RE = re.compile(r"!\[([^\]]*)\]\((?!https?:|data:)([^)\s]+)\)")
+
+
+def localize_images(md, base_dir):
+    """Copia a site/assets/ las imágenes referenciadas con ruta relativa y reescribe el enlace."""
+    def repl(m):
+        src = (base_dir / m.group(2).replace("%20", " ")).resolve()
+        if not src.is_file() or ROOT not in src.parents:
+            return m.group(0)
+        ASSETS.mkdir(parents=True, exist_ok=True)
+        name = f"{hashlib.sha1(str(src.relative_to(ROOT)).encode()).hexdigest()[:8]}-{src.name.replace(' ', '-')}"
+        dst = ASSETS / name
+        if not dst.exists() or dst.stat().st_mtime < src.stat().st_mtime:
+            dst.write_bytes(src.read_bytes())
+        return f"![{m.group(1)}](assets/{name})"
+    return IMG_RE.sub(repl, md)
+
+
 def collect_docs():
     docs = []
     for p in sorted(DOCS.rglob("*.md")):
@@ -67,6 +86,7 @@ def collect_docs():
         if any(part in EXCLUDE_DIRS for part in rel.parts):
             continue
         meta, body = split_frontmatter(read(p))
+        body = localize_images(body, p.parent)
         group = rel.parts[0] if len(rel.parts) > 1 else "General"
         if len(rel.parts) > 2:
             group = f"{rel.parts[0]} / {rel.parts[1]}"
@@ -87,7 +107,7 @@ def split_readme():
     p = ROOT / "README.md"
     if not p.exists():
         return {"en": "", "es": ""}
-    text = read(p)
+    text = localize_images(read(p), ROOT)
     m = re.search(r"\n(?:---\n)+\s*\n# Caja Negra\s+-\s+Servicio", text)
     if not m:
         return {"en": text, "es": text}
@@ -343,7 +363,11 @@ const byTitle = {};
 D.docs.forEach(d => { byTitle[d.title.toLowerCase()] = d; byTitle[d.path.replace(/^docs\//,'').replace(/\.md$/,'').toLowerCase()] = d; });
 const headingId = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-');
 
+// Solo fuera de bloques de código: dentro de ```mermaid, `[[...]]` es sintaxis (nodo subrutina), no un enlace.
 function wikilinks(md){
+  return md.split(/(```[\s\S]*?```)/g).map((part, i) => i % 2 ? part : wikilinksText(part)).join('');
+}
+function wikilinksText(md){
   return md.replace(/!?\[\[([^\]|#]+)(#[^\]|]+)?(\|([^\]]+))?\]\]/g, (m, target, sec, _a, alias) => {
     const d = byTitle[target.trim().toLowerCase()];
     const label = alias || (target.split('/').pop() + (sec ? ' › ' + sec.slice(1) : ''));
