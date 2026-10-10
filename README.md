@@ -278,6 +278,13 @@ Each decision states the alternative it discarded and why. Full records: [`docs/
 | ADR-005 | Language | **Python 3.10** for bench *and* replacement | Node / Go | One language for fitting code and runtime: the check-value model is reused verbatim, no re-translation bugs |
 | ADR-006 | Unknown inputs | **Explicit defaults** labelled `supuesto` in the spec | Guessing silently / LLM fallback | A wrong *labelled* default costs one test; an unlabelled false claim also subtracts from the spec score |
 | ADR-007 | Spec confidence | `confirmado` only if **reproduced ≥ 2 times or predicted on unseen input** | Marking anything observed once as confirmed | False claims subtract; confidence must be earned by repetition or prediction |
+| ADR-008 | Internal structure | **Minimal hexagonal**: HTTP adapter → pipeline → command registry → pure domain → ports | Monolithic `app.py` with `if/elif`; full Clean Architecture | The monolith hides error precedence; full Clean is ceremony for an 8-hour build |
+| ADR-009 | Errors & precedence | **Error catalog as data** (code, status, exact body, stage) + pipeline with declared order; handlers raise `DomainError(code)` | Nested `if`s with scattered strings; Pydantic validation | Precedence is the hard case: as data it is checked against the log and versioned |
+| ADR-010 | Commands | **Registry** name → handler + arity, one module per command | `if cmd == ...` dispatcher | A new or changed command touches one file |
+| ADR-011 | 15:30 change | **Inheritable behavior profiles** `BEHAVIOR_PROFILE=v1\|v2` (base + overrides), goldens per profile | Editing rules in place; `if INCIDENT` flags; git branches | Both versions coexist and are tested; the profile diff documents the incident; rollback = one variable |
+| ADR-012 | Scalability | App holds no state of its own, behind the store port; **1 replica on purpose**; scaling = shared store (Redis) partitioned by token | Several in-memory replicas; Redis from day one | The judges talk to one process: N in-memory replicas = N states |
+| ADR-013 | Overfitting guard | Differential tester with **hold-out** (different seed); alarm if dev − hold-out ≥ 5 pts | Measuring only on dev or only on the official score | Fitting ≠ generalizing (see Issue #1) |
+| ADR-014 | Safety net | Differential + goldens on pre-push, post-deploy smoke with token, JSON request logs, sentinel sequences for 15:30 | Manual tests; OpenTelemetry/Prometheus | Maximum regression detection for minimum setup in one day |
 
 ---
 
@@ -744,6 +751,13 @@ Cada decisión dice qué alternativa descartó y por qué. Registros completos: 
 | ADR-005 | Lenguaje | **Python 3.10** para el banco *y* para el reemplazo | Node / Go | Un solo lenguaje para el ajuste y para el runtime: el modelo del control se reutiliza tal cual, sin bugs de traducción |
 | ADR-006 | Entradas desconocidas | **Defaults explícitos**, marcados `supuesto` en la spec | Adivinar en silencio / fallback a un LLM | Un default equivocado *pero marcado* cuesta un test; una afirmación falsa sin marcar además resta puntos en la spec |
 | ADR-007 | Confianza en la spec | `confirmado` solo si se **reprodujo ≥ 2 veces o se predijo con una entrada no vista** | Marcar como confirmado todo lo que se vio una vez | Las afirmaciones falsas restan; la confianza se gana con repetición o predicción |
+| ADR-008 | Estructura interna | **Hexagonal mínima**: adaptador HTTP → pipeline → registro de comandos → dominio puro → puertos | `app.py` monolítico con `if/elif`; Clean Architecture completa | El monolito oculta la precedencia de errores; la Clean completa es ceremonia para 8 horas |
+| ADR-009 | Errores y precedencia | **Catálogo de errores como datos** (código, status, cuerpo exacto, etapa) + pipeline con orden declarado; los handlers lanzan `DomainError(code)` | `if` anidados con strings dispersos; validación con Pydantic | La precedencia es el caso difícil: como datos se contrasta con el log y se versiona |
+| ADR-010 | Comandos | **Registro** nombre → handler + aridad, un módulo por comando | Dispatcher `if cmd == ...` | Un comando nuevo o cambiado toca un solo archivo |
+| ADR-011 | Cambio de las 15:30 | **Perfiles de comportamiento heredables** `BEHAVIOR_PROFILE=v1\|v2` (base + overrides), goldens por perfil | Editar reglas en el sitio; flags `if INCIDENT`; ramas de git | Ambas versiones conviven y se prueban; el diff entre perfiles documenta el incidente; rollback = una variable |
+| ADR-012 | Escalabilidad | La app no guarda estado propio y todo pasa por el puerto del store; **1 réplica a propósito**; escalar = store compartido (Redis) particionado por token | Varias réplicas en memoria; Redis desde el día 1 | El jurado le habla a un proceso: N réplicas en memoria = N estados |
+| ADR-013 | Anti-sobreajuste | Tester diferencial con **hold-out** (otra semilla); alarma si dev − hold-out ≥ 5 pts | Medir solo en dev o solo con el resultado oficial | Ajustar ≠ generalizar (ver Problema #1) |
+| ADR-014 | Red de seguridad | Diferencial + goldens en pre-push, smoke post-deploy con token, logs JSON por request, secuencias centinela para la 15:30 | Tests manuales; OpenTelemetry/Prometheus | Máxima detección de regresiones con mínimo montaje en un día |
 
 ---
 
