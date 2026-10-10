@@ -8,7 +8,12 @@ tags: [arquitectura, moc]
 
 | ID | Decisión | Elegido | Descartado | Estado |
 |---|---|---|---|---|
-| [[ADR-001]] | Stack del reemplazo y control de la respuesta HTTP | Catch-all de bajo nivel (por definir lenguaje) | Routing declarativo de framework (FastAPI/Express) | propuesta |
-| [[ADR-002]] | Dónde vive el estado | Memoria, 1 instancia, snapshot inicial | Base de datos (Redis/Postgres/SQLite) | propuesta |
-| [[ADR-003]] | Cómo descubrimos y verificamos el comportamiento | Corpus grabado + tester diferencial | Exploración manual con curl/Postman; leer y adivinar | propuesta |
-| [[ADR-004]] | Hosting | Por decidir (siempre encendido, sin cold start) | Plataformas con suspensión por inactividad | propuesta |
+| [[ADR-001]] | Núcleo HTTP | Catch-all ASGI puro sobre uvicorn | Routing de FastAPI/Flask | propuesta |
+| [[ADR-002]] | Dónde vive el estado | Memoria, 1 proceso, snapshot inicial | Base de datos (Redis/Postgres/SQLite) | propuesta |
+| [[ADR-003]] | Cómo descubrimos y verificamos el comportamiento | Prober con log + ajuste offline + validación predictiva + replay diferencial | curl/Postman manual; herramientas automáticas | aplicada |
+| [[ADR-004]] | Hosting | Railway, siempre encendido, 1 réplica | Serverless; planes gratis que se duermen | propuesta |
+| ADR-005 | Lenguaje | Python 3.10 en el banco y en el reemplazo | Node / Go | propuesta |
+| ADR-006 | Entradas desconocidas | Default explícito marcado `supuesto` | Adivinar en silencio / fallback a LLM | propuesta |
+| ADR-007 | Confianza en la spec | `confirmado` solo con ≥ 2 repeticiones o una predicción sobre entrada no vista | Confirmar lo visto una sola vez | aplicada |
+
+Detalle de las 7 decisiones con su justificación: README del repo → *Decisiones de Diseño*.

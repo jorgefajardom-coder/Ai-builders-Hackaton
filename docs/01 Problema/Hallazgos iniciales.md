@@ -44,6 +44,13 @@ Pares válidos conocidos: `ALTA;Lucia→82`, `ALTA;Mateo→3`, `CONSULTA;AC-0001
 - **Siguiente paso:** experimentos controlados en vivo, variando **un carácter a la vez** y midiendo cuánto cambia el control → peso de cada posición.
 - `PING;XX` responde `pong` según el README → ¿PING no valida el control?
 
+## Estado del control a las 10:15 (pausado para el diseño)
+- Confirmado: lineal mod 97, base 10, `;` y `-` no cuentan, una letra = una posición (log 37–737).
+- **Rango 1–98** (`CONSULTA;A` → 98, log 1160) → firma de **ISO 7064 mod 97-10** (`98 − N mod 97`).
+- El ajuste con D=68, L=53 y una constante por comando **memorizaba pero no predecía** (log 739, 742, 745) → descartado.
+- Mediciones de `CONSULTA;<letra>` en log 797–1247 (Z=50, Q=77, R=74, X=56, Y=53, A=98, E=86).
+- **Retomar en la ejecución:** probar `98 − (N·100 mod 97)` con N = concatenación de valores, letras A=10…Z=35 **sumadas** en una posición decimal (h·10 + v), comando incluido o no; validar con predicción.
+
 ## Inconsistencias a replicar (no corregir)
 - `recieved` (typo)
 - `cuentaId` vs `cuenta_id`
