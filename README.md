@@ -46,7 +46,6 @@ Black-box Reverse Engineering · Evidence-Driven Specification · Behavior-Exact
 - [Timeline](#timeline)
 - [Resolved Issues](#resolved-issues)
 - [Authors](#authors)
-- [License](#license-and-rights)
 
 > **Two products, one pipeline:** the *knowledge* (specification + experiment log) and the *replacement* (deployed service). The first feeds the second.
 
@@ -446,15 +445,6 @@ python exp01_entrada.py     # every request is appended to ../experimentos.jsonl
 
 **Jorge Andres Fajardo Mora**
 
----
-
-## License and Rights
-
-**Copyright © 2026 Jorge Andres Fajardo Mora. All rights reserved.**
-
-This repository and all its contents  -  including but not limited to source code, scripts, configuration files, data files, and documentation  -  are provided for **read-only and reference purposes only**, and for evaluation within the AI Builders Hackathon.
-
-**No permission is granted** to copy, modify, distribute, sublicense, or use any part of this project for commercial or non-commercial purposes without **explicit written authorization** from the author.
 
 ---
 ---
@@ -508,7 +498,6 @@ Ingeniería inversa de caja negra · Especificación basada en evidencia · Reem
 - [Cronograma](#cronograma)
 - [Problemas Resueltos](#problemas-resueltos)
 - [Autores](#autores)
-- [Licencia](#licencia-y-derechos)
 
 > **Dos productos, un pipeline:** el *conocimiento* (especificación + log de experimentos) y el *reemplazo* (servicio desplegado). El primero alimenta al segundo.
 
@@ -908,12 +897,3 @@ python exp01_entrada.py     # cada request se agrega a ../experimentos.jsonl
 
 **Jorge Andres Fajardo Mora**
 
----
-
-## Licencia y Derechos
-
-**Copyright © 2026 Jorge Andres Fajardo Mora. Todos los derechos reservados.**
-
-Este repositorio y todo su contenido, incluidos pero no limitados a código fuente, scripts, archivos de configuración, archivos de datos y documentación, se ofrecen **solo para lectura y referencia**, y para su evaluación dentro del AI Builders Hackathon.
-
-**No se concede permiso** para copiar, modificar, distribuir, sublicenciar ni usar ninguna parte de este proyecto con fines comerciales o no comerciales sin **autorización escrita explícita** del autor.
