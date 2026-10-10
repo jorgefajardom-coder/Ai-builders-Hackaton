@@ -30,6 +30,8 @@ jobs:
           python-version: "3.10"
       - run: python tools/build_docs.py
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true   # activa Pages (fuente: GitHub Actions) si aún no está activado
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
