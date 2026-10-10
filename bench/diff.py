@@ -8,6 +8,7 @@ Uso:
     python bench/diff.py --target URL          # contra un despliegue (usa TEAM_TOKEN de .env)
     python bench/diff.py --split holdout       # solo casos hold-out (hash de la seq)
     python bench/diff.py -v                    # muestra cada diferencia
+    python bench/diff.py --seq s17-anula       # solo una secuencia (repetible)
 """
 import argparse
 import hashlib
@@ -151,12 +152,15 @@ def main():
     ap.add_argument("--target")
     ap.add_argument("--split", choices=["dev", "holdout", "all"], default="all")
     ap.add_argument("-v", action="store_true")
+    ap.add_argument("--seq", action="append", help="solo estas secuencias (repetible)")
     a = ap.parse_args()
     tgt = Remote(a.target) if a.target else InProcess()
     total = ok_cases = steps = ok_steps = ok_status = 0
     fails = defaultdict(int)
     for seq, case in cases():
         if a.split != "all" and split_of(seq) != a.split:
+            continue
+        if a.seq and seq not in a.seq:
             continue
         tgt.reset()
         total += 1
