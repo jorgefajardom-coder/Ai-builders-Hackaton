@@ -22,4 +22,5 @@ python bench/diff.py --split holdout
 | 14:45 | v1 desplegada | `/evento` oficial 1/3 | **87/100** | — | fáciles 40/40 · regulares 36/40 · difíciles 11/20; el set ya esperaba v2 |
 | 16:05 | v1 desplegada | `/evento` oficial 2/3 | **87/100** | — | mismo desglose; 9 por status, 4 por cuerpo, 1 en el primer request |
 | 16:26 | `0b8ffbf` (v2) | `/evento` oficial 3/3 | **90/100** | — | fáciles 39/40 · regulares 36/40 · difíciles 15/20; **contaminada**: nuestro diff contra Railway corrió en paralelo (16:25–16:30) con el mismo token |
+| 17:40 | `6044d15` | en proceso + Railway | 340/340 · Railway 9/9 (exp32–35, fz2-001) | 5008/5008 | fuzzer diferencial: semilla 2 → 59/60 (halló CT-15, mismo titular sin límite); semilla 3 → **40/40** tras el fix |
 | >20:00 | último entrypoint | corrida final del jurado | —/100 | — | **la que cuenta**; nadie debe usar el token del equipo después de las 20:00 |
