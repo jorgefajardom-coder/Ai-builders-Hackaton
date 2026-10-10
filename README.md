@@ -19,7 +19,7 @@ Black-box Reverse Engineering · Evidence-Driven Specification · Behavior-Exact
 
 <br/>
 
-[![Demo Video](https://img.shields.io/badge/▶_Demo_Video-pending_20:00-red?style=for-the-badge&logo=youtube)](#)
+[![Demo Video](https://img.shields.io/badge/▶_Demo_Video-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/oBzgzodlFgU)
 
 </div>
 
@@ -478,7 +478,7 @@ Ingeniería inversa de caja negra · Especificación basada en evidencia · Reem
 
 <br/>
 
-[![Video Demo](https://img.shields.io/badge/▶_Video_Demo-pendiente_20:00-red?style=for-the-badge&logo=youtube)](#)
+[![Video Demo](https://img.shields.io/badge/▶_Video_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/oBzgzodlFgU)
 
 </div>
 

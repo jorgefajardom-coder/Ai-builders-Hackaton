@@ -8,7 +8,7 @@ entrega: "20:00"
 - [ ] **Servicio desplegado** y probado desde una máquina/red distinta
 - [ ] Entrypoint claro y documentado en el README
 - [ ] Corre contra el set de evaluaciones oculto (formato de entrada/salida verificado)
-- [ ] **Video de 2 minutos**
+- [x] **Video de 2 minutos** → https://youtu.be/oBzgzodlFgU
 - [ ] Resultados del [[Plan de evaluación]] actualizados
 - [ ] **Transcripts** de las sesiones con agentes → [[Reglas#Transcripts]]
 - [ ] Sin secretos en el repo; `.env.example` presente
@@ -24,4 +24,6 @@ entrega: "20:00"
 https://caja-negra-production-f95d.up.railway.app
 
 ## Video
+https://youtu.be/oBzgzodlFgU
+
 Guion y prompt: [[Prompt video]].

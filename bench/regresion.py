@@ -6,9 +6,13 @@ grabada en v1 usando el comparador del jurado. De los barridos grandes (s2-contr
 solo los aciertos (respuestas distintas de E202), más 3 fallos de muestra.
 
 Uso:
-    python bench/regresion.py                    # todo lo grabado antes del incidente
+    python bench/regresion.py                    # todo lo grabado antes del incidente (ids <= CORTE_V2)
     python bench/regresion.py --hasta 2700       # solo ids de log <= 2700
     python bench/regresion.py --seq s16-transfer # solo esa secuencia (repetible)
+
+El corpus se limita a la era v1 (ids <= CORTE_V2): todo lo posterior ya es v2 y reenviarlo gastaría ~2.000
+requests del token sin medir nada. Una corrida parcial (--seq o --hasta menor) escribe regresion_v2.parcial.json
+para no pisar el resultado completo que cita la spec (CB-07/CB-08).
 """
 import argparse
 import json
@@ -18,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import prober  # noqa: E402
-from diff import same  # noqa: E402
+from diff import CORTE_V2, same  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 BARRIDOS = {"s2-control", "s4-letras"}
@@ -68,9 +72,11 @@ def main():
         except AttributeError:
             pass
     ap = argparse.ArgumentParser()
-    ap.add_argument("--hasta", type=int, default=10**9)
+    ap.add_argument("--hasta", type=int, default=CORTE_V2)
     ap.add_argument("--seq", action="append")
     a = ap.parse_args()
+    if a.hasta > CORTE_V2:
+        ap.error(f"--hasta {a.hasta} incluye requests de la era v2 (CORTE_V2 = {CORTE_V2}): no es corpus de la mañana")
     casos = [(s, p) for s, p in cargar(a.hasta) if not a.seq or s in a.seq]
     total = iguales = 0
     cambios = []
@@ -93,7 +99,8 @@ def main():
         print(f"  ✗ [{c['seq']}] v1 #{c['v1_id']} → v2 #{c['v2_id']} {c['metodo']} {c['ruta']} {json.dumps(req, ensure_ascii=False)}\n"
               f"      v1 {c['v1'][0]} {json.dumps(c['v1'][1], ensure_ascii=False)}\n"
               f"      v2 {c['v2'][0]} {json.dumps(c['v2'][1], ensure_ascii=False)}")
-    (ROOT / "bench" / "regresion_v2.json").write_text(json.dumps(cambios, ensure_ascii=False, indent=1), encoding="utf-8")
+    nombre = "regresion_v2.json" if not a.seq and a.hasta == CORTE_V2 else "regresion_v2.parcial.json"
+    (ROOT / "bench" / nombre).write_text(json.dumps(cambios, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":
