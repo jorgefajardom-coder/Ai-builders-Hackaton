@@ -21,10 +21,7 @@ entrega: "20:00"
 ```
 
 ## URL del servicio
--
+https://caja-negra-production-f95d.up.railway.app
 
-## Guion del video (2 min)
-1. Problema (15 s)
-2. Demo del servicio desplegado (60 s)
-3. Métricas y una decisión clave (30 s)
-4. Cómo absorbimos el [[Incidente]] (15 s)
+## Video
+Guion y prompt: [[Prompt video]].

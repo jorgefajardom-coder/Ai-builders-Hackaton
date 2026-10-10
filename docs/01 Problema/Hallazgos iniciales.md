@@ -4,6 +4,10 @@ fuente: material/pruebas/ejemplos.jsonl
 ---
 # Hallazgos iniciales (de los 20 ejemplos)
 
+> [!warning] Histórico (mañana, antes de la exploración en vivo)
+> Parte de lo que dice aquí quedó **superado** (p. ej. el modelo del control con una posición por letra). La versión vigente es `spec/ESPECIFICACION.md`. Se conserva como registro del razonamiento.
+
+
 > [!warning] Todo aquí es **probable** hasta repetirlo contra el original y registrarlo en `experimentos.jsonl`. Los ejemplos se grabaron con la versión **de la mañana**: el servicio puede cambiar durante el día.
 
 ## Forma del mensaje

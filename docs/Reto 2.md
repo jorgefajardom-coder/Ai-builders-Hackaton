@@ -33,12 +33,4 @@ tags: [referencia, reto2]
 - **`experimentos.jsonl`** → [[Log de experimentos]] (una línea por request al original)
 
 ## Preguntas abiertas
-- [ ] **Fórmula del control** → [[Hallazgos iniciales#El control (pendiente)]]
-- [ ] Orden de evaluación de los errores (¿integridad → sintaxis → existencia → negocio?)
-- [ ] Respuesta del original sin token, con token inválido y en rutas inexistentes / otros métodos
-- [ ] ¿`ANULA` revierte el saldo? ¿Se puede anular un `DEPOSITO`? ¿Y si deja saldo negativo?
-- [ ] Límite exacto de `TRANSFER` (¿100000?) y si existe para `DEPOSITO`
-- [ ] Montos 0, negativos, con decimales o no numéricos; transferencia a la misma cuenta
-- [ ] Nombres en `ALTA`: vacíos, con unicode, largos, duplicados
-- [ ] ¿Qué es `X-Req`? (¿contador de requests por token?)
-- [ ] Pestaña **Aclaraciones** de la web
+Resueltas en `spec/ESPECIFICACION.md` (control, precedencia, ANULA, montos, nombres, X-Req, NOTAS, HALT, antifraude). Lo que sigue abierto está marcado como **supuesto** (SU-01…SU-05) y lo que cambie a las 15:30 lo detecta el [[Centinela]].

@@ -18,7 +18,7 @@ estado: propuesta
 2. **Borde HTTP = catch-all ASGI puro** sobre `uvicorn --workers 1`. Un solo `async def app(scope, receive, send)` recibe cualquier método y ruta. Ningún framework responde por nosotros: ni 404, ni 405, ni 422, ni redirects de `/` final. Se mantiene [[ADR-001]].
 3. **Pipeline de validación con precedencia explícita** (cadena de responsabilidad). Las etapas son `ruta → auth → cuerpo → integridad → sintaxis → existencia → negocio`. Cada etapa devuelve `Ok(ctx)` o `Err(código)`, y **el orden lo da una lista del perfil**, no el anidado de `if`s. Así, cambiar la precedencia entre E202 y E302 es cambiar una línea de datos.
 4. **Registro de comandos (patrón Command + registry):** `ALTA`, `CONSULTA`, `DEPOSITO`, `TRANSFER`, `ANULA` y `PING` son clases o funciones con la misma firma `(args, estado, ids) → Resultado`. Se registran en un diccionario `{nombre: handler}` con su aridad declarada. Un comando nuevo después de las 15:30 es **un archivo más**, sin tocar el dispatcher.
-5. **Dominio puro y determinista:** los handlers son funciones **síncronas** sin I/O, sin reloj y sin aleatoriedad. Reciben el estado y devuelven `(nuevo_estado, respuesta)`. El valor de control (ISO 7064 mod 97-10) vive en `checkval.py`, que es el mismo código que valida el banco de pruebas ([[ADR-005]]).
+5. **Dominio puro y determinista:** los handlers son funciones **síncronas** sin I/O, sin reloj y sin aleatoriedad. Reciben el estado y devuelven `(nuevo_estado, respuesta)`. El valor de control (ISO 7064 mod 97-10) vive en `checkval.py`, que es el mismo código que valida el banco de pruebas (ADR-005).
 6. **Catálogo de errores como datos:** `errors.py` (o un YAML del perfil) guarda `{código: (status, cuerpo exacto)}`. Los handlers solo lanzan `DomainError("E401")` y el borde HTTP lo traduce. Ningún string de error aparece suelto en el código.
 7. **Perfiles de comportamiento versionados:** `profiles/v1_manana.py` y `profiles/v2_incidente.py` declaran el catálogo de errores, el orden del pipeline, los límites (montos, aridades), el algoritmo de control y los *overrides* de comandos. La variable `BEHAVIOR_PROFILE` elige uno, y por defecto rige el vigente a las 20:00. El incidente de las 15:30 se modela como un **perfil nuevo que hereda del anterior y solo sobrescribe lo que cambió**. El diff entre perfiles es, literalmente, la sección 6 de la spec.
 8. **Puerto `StateRepository` + `IdGenerator`**, con el estado **particionado por token**. Hoy el adaptador es `InMemoryRepository`: un `dict[token, Ledger]` con una *factory* del estado inicial, y `/__reset` llama `factory()` (más barato y seguro que `deepcopy`). Los IDs de cuentas y operaciones salen de contadores **dentro del estado**, así que el reset también los reinicia. Un adaptador Redis o Postgres queda **documentado, no construido**.
@@ -29,73 +29,11 @@ estado: propuesta
 
 Las capas van de arriba abajo. Cada flecha solo baja una capa y ninguna cruza otra. La línea punteada es un adaptador futuro, no construido.
 
-```mermaid
----
-config:
-  layout: elk
----
-flowchart LR
-    JUDGE(["Set oculto del jurado · Bearer token"])
-
-    subgraph L1["1 · Borde HTTP · adaptador de entrada"]
-        direction TB
-        ASGI["app.py<br/>catch-all ASGI<br/>uvicorn · 1 worker"]
-        CODEC["http_codec.py<br/>leer body · JSON exacto<br/>DomainError → status + cuerpo"]
-        ASGI --> CODEC
-    end
-
-    subgraph L2["2 · Aplicación"]
-        direction TB
-        PROF["profiles/<br/>v1_manana · v2_incidente<br/>elegido por BEHAVIOR_PROFILE"]
-        PIPE["pipeline.py<br/>etapas en orden del perfil<br/>ruta → auth → cuerpo → control<br/>→ sintaxis → existencia → negocio"]
-        REG["registry.py<br/>nombre → handler + aridad"]
-        PROF --> PIPE
-        PIPE --> REG
-    end
-
-    subgraph L3["3 · Dominio puro · sin I/O"]
-        direction TB
-        CHK["checkval.py<br/>ISO 7064 mod 97-10"]
-        ERR["errors.py<br/>catálogo E001…E507"]
-        CMDS["commands/<br/>ALTA · CONSULTA · DEPOSITO<br/>TRANSFER · ANULA · PING"]
-    end
-
-    subgraph L4["4 · Puertos"]
-        direction TB
-        REPO["StateRepository<br/>get · put · reset por token"]
-        IDS["IdGenerator<br/>contadores dentro del estado"]
-    end
-
-    subgraph L5["5 · Adaptadores de salida"]
-        direction TB
-        MEM[("InMemoryRepository<br/>dict por token · factory inicial")]
-        RED[("Redis / Postgres<br/>futuro · no construido")]
-    end
-
-    JUDGE --> ASGI
-    CODEC --> PIPE
-    PIPE --> CHK
-    PIPE --> ERR
-    REG --> CMDS
-    CMDS --> REPO
-    CMDS --> IDS
-    REPO --> MEM
-    REPO -.-> RED
-```
+> Esta recomendación se adoptó con ajustes; el diagrama vigente es [[diagrama-arquitectura]] (fuente única).
 
 ### Diagrama de la red de seguridad (banco + CI)
 
-```mermaid
----
-config:
-  layout: elk
----
-flowchart TB
-    PRB["prober.py<br/>reset → secuencia → graba"] --> LOG[("experimentos.jsonl<br/>marcado v1 / v2 por hora")]
-    LOG --> GOLD["golden/*.jsonl<br/>secuencias congeladas por perfil"]
-    GOLD --> DIFF["diff.py<br/>comparador del jurado"]
-    DIFF --> CI["CI · pre-push / GitHub Actions<br/>falla si baja la paridad"]
-```
+> El flujo de descubrimiento está en el README → *Ciclo de Descubrimiento* (fuente única).
 
 ---
 

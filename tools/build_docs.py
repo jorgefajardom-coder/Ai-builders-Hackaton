@@ -70,6 +70,10 @@ def localize_images(md, base_dir):
         src = (base_dir / m.group(2).replace("%20", " ")).resolve()
         if not src.is_file() or ROOT not in src.parents:
             return m.group(0)
+        mmd = src.with_suffix(".mmd")
+        if mmd.is_file():
+            # Fuente única del diagrama: en GitHub se ve el PNG; en el sitio, el Mermaid animado del .mmd.
+            return "```mermaid\n" + mmd.read_text(encoding="utf-8").strip() + "\n```"
         ASSETS.mkdir(parents=True, exist_ok=True)
         name = f"{hashlib.sha1(str(src.relative_to(ROOT)).encode()).hexdigest()[:8]}-{src.name.replace(' ', '-')}"
         dst = ASSETS / name

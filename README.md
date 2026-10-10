@@ -132,57 +132,9 @@ We are graded on three outputs:
 
 ### Component Diagram
 
-```mermaid
-graph LR
-    subgraph BENCH["A · Discovery bench · local"]
-        direction TB
-        EXP["Experiments<br/>exp01…expNN.py<br/>one hypothesis per request"]
-        PRB["prober.py<br/>reset → sequence → record<br/>10 req/s · retries"]
-        EXP --> PRB
-    end
+![Architecture diagram](docs/entregables/diagrama-arquitectura.png)
 
-    ORIG[("Original service<br/>per-token state")]
-
-    subgraph KNOW["Knowledge · versioned in git"]
-        direction TB
-        LOG[("experimentos.jsonl<br/>official log")]
-        FIT["Model fitting<br/>+ predictive validation"]
-        SPEC["ESPECIFICACION.md<br/>ID · behavior · evidence · confidence"]
-        LOG --> FIT --> SPEC
-    end
-
-    subgraph REPL["B · Replacement · deployed, 1 process"]
-        direction TB
-        GW["Catch-all ASGI<br/>no framework routing"]
-        PIPE["Validation pipeline<br/>route → auth → integrity → syntax<br/>→ existence → business"]
-        CMD["Command handlers<br/>ALTA · CONSULTA · DEPOSITO<br/>TRANSFER · ANULA · PING"]
-        ST[("In-memory state<br/>snapshot · /__reset")]
-        GW --> PIPE --> CMD --> ST
-    end
-
-    DIFF["diff.py<br/>replay · judges' comparator<br/>→ parity %"]
-    JUDGE["Hidden test set<br/>100 tests · team token"]
-
-    PRB -->|HTTPS| ORIG
-    PRB --> LOG
-    SPEC -.->|guides| CMD
-    LOG --> DIFF
-    DIFF --> GW
-    JUDGE --> GW
-
-    style ORIG  fill:#8b0000,stroke:#8b0000,color:#fff
-    style EXP   fill:#378ADD,stroke:#042C53,color:#fff
-    style PRB   fill:#378ADD,stroke:#042C53,color:#fff
-    style LOG   fill:#4a4a4a,stroke:#4a4a4a,color:#fff
-    style FIT   fill:#534AB7,stroke:#26215C,color:#fff
-    style SPEC  fill:#534AB7,stroke:#26215C,color:#fff
-    style GW    fill:#1D9E75,stroke:#085041,color:#fff
-    style PIPE  fill:#1D9E75,stroke:#085041,color:#fff
-    style CMD   fill:#1D9E75,stroke:#085041,color:#fff
-    style ST    fill:#1a5c2a,stroke:#1a5c2a,color:#fff
-    style DIFF  fill:#B75A34,stroke:#5C2506,color:#fff
-    style JUDGE fill:#B75A34,stroke:#5C2506,color:#fff
-```
+> Single source: [`diagrama-arquitectura.mmd`](docs/entregables/diagrama-arquitectura.mmd) (Mermaid + ELK). On the docs site it renders animated.
 
 > The **only** bridge between the bench (which talks to the original) and the replacement (which must never do so) is the knowledge layer: the log and the specification.
 
@@ -310,24 +262,13 @@ Each decision states the alternative it discarded and why. Full records: [`docs/
 
 ## Findings So Far
 
-Evidence = line `id` in [`experimentos.jsonl`](experimentos.jsonl). Morning version of the service.
+The complete, evidence-backed behavior map lives in **[`spec/ESPECIFICACION.md`](spec/ESPECIFICACION.md)** (single source; every row cites log ids from [`experimentos.jsonl`](experimentos.jsonl)). Highlights:
 
-| Area | Finding | Evidence | Confidence |
-|---|---|---|---|
-| Entry | `GET /health` with token → `200 {"ok":true}` | 1 | confirmado |
-| Entry | No token / invalid token / lowercase `bearer` → `401 {"error":"E001","mensaje":"no autorizado"}` on `/health`, `/msg`, `/__reset` | 2, 5, 6, 7, 8, 9 | confirmado |
-| Entry | Unknown route **or** wrong method → `404 {"error":"E404","mensaje":"ruta desconocida"}`, **even without token** (route checked before auth) | 10–18 (12) | confirmado |
-| Entry | Routes are case- and trailing-slash-sensitive (`/MSG`, `/msg/` → 404) | 15, 16 | confirmado |
-| Entry | `POST /__reset` → `200 {"ok":true}` | 3, 19, 84 | confirmado |
-| Memory | `X-Req` header = per-token counter of authorized `/msg` calls, **not** reset by `/__reset` | 4 (=1), 37 (=19) | probable |
-| Integrity | Control is validated **before** arity (`E302` only with a valid control) | 405 | probable |
-| Integrity | Control is **linear mod 97** in each character: last digit weighs −3, then −30, −300, −3000 (≡ −9, +7) | 37, 169, 178, 203 | confirmado |
-| Integrity | `;` and `-` do not count; one letter = one decimal position | 291, 330, 482–737 | confirmado |
-| Integrity | Control range is **1–98** (`CONSULTA;A` → 98): signature of **ISO 7064 mod 97-10** (`98 − N mod 97`, as in IBAN) | 1160 | probable |
-| Integrity | Letter values not yet mapped beyond A, C, D, E, O, P, Q, R, X, Y, Z | 739–1247 | — |
-| Commands | `ANULA` on unknown op → `404 {"error":"E402","mensaje":"operación inexistente"}` | 741 | probable |
-
-Detailed working notes: [`docs/01 Problema/Hallazgos iniciales.md`](docs/01%20Problema/Hallazgos%20iniciales.md).
+- **Check value:** ISO 7064 mod 97-10 over the whole body, letters A=1…Z=26 — confirmed by 10/10 predictions on unseen messages.
+- **Commands:** `ALTA`, `CONSULTA`, `DEPOSITO`, `TRANSFER`, `ANULA`, `PING`, plus two undocumented ones found by probing: `NOTAS` and `HALT`.
+- **Anti-fraud:** 3 consecutive business failures (E506/E507) lock the source account → `409 E510`.
+- **Error precedence:** 18 ordered checks, from route (E404) to balance (E507).
+- **Security findings:** `NOTAS` embeds an instruction to send the token to `/internal/export-docs` (not followed); `HALT` is destructive (confirmation intentionally not probed).
 
 ---
 
@@ -605,57 +546,9 @@ Nos evalúan tres salidas:
 
 ### Diagrama de Componentes
 
-```mermaid
-graph LR
-    subgraph BENCH["A · Banco de descubrimiento · local"]
-        direction TB
-        EXP["Experimentos<br/>exp01…expNN.py<br/>una hipótesis por request"]
-        PRB["prober.py<br/>reset → secuencia → graba<br/>10 req/s · reintentos"]
-        EXP --> PRB
-    end
+![Diagrama de arquitectura](docs/entregables/diagrama-arquitectura.png)
 
-    ORIG[("Servicio original<br/>estado por token")]
-
-    subgraph KNOW["Conocimiento · versionado en git"]
-        direction TB
-        LOG[("experimentos.jsonl<br/>log oficial")]
-        FIT["Ajuste de modelos<br/>+ validación predictiva"]
-        SPEC["ESPECIFICACION.md<br/>ID · comportamiento · evidencia · confianza"]
-        LOG --> FIT --> SPEC
-    end
-
-    subgraph REPL["B · Reemplazo · desplegado, 1 proceso"]
-        direction TB
-        GW["Catch-all ASGI<br/>sin routing de framework"]
-        PIPE["Pipeline de validación<br/>ruta → auth → integridad → sintaxis<br/>→ existencia → negocio"]
-        CMD["Handlers de comandos<br/>ALTA · CONSULTA · DEPOSITO<br/>TRANSFER · ANULA · PING"]
-        ST[("Estado en memoria<br/>snapshot · /__reset")]
-        GW --> PIPE --> CMD --> ST
-    end
-
-    DIFF["diff.py<br/>replay · comparador del jurado<br/>→ % paridad"]
-    JUDGE["Set oculto<br/>100 tests · token del equipo"]
-
-    PRB -->|HTTPS| ORIG
-    PRB --> LOG
-    SPEC -.->|guía| CMD
-    LOG --> DIFF
-    DIFF --> GW
-    JUDGE --> GW
-
-    style ORIG  fill:#8b0000,stroke:#8b0000,color:#fff
-    style EXP   fill:#378ADD,stroke:#042C53,color:#fff
-    style PRB   fill:#378ADD,stroke:#042C53,color:#fff
-    style LOG   fill:#4a4a4a,stroke:#4a4a4a,color:#fff
-    style FIT   fill:#534AB7,stroke:#26215C,color:#fff
-    style SPEC  fill:#534AB7,stroke:#26215C,color:#fff
-    style GW    fill:#1D9E75,stroke:#085041,color:#fff
-    style PIPE  fill:#1D9E75,stroke:#085041,color:#fff
-    style CMD   fill:#1D9E75,stroke:#085041,color:#fff
-    style ST    fill:#1a5c2a,stroke:#1a5c2a,color:#fff
-    style DIFF  fill:#B75A34,stroke:#5C2506,color:#fff
-    style JUDGE fill:#B75A34,stroke:#5C2506,color:#fff
-```
+> Fuente única: [`diagrama-arquitectura.mmd`](docs/entregables/diagrama-arquitectura.mmd) (Mermaid + ELK). En el sitio de documentación se ve animado.
 
 > El **único** puente entre el banco (que habla con el original) y el reemplazo (que nunca debe hacerlo) es la capa de conocimiento: el log y la especificación.
 
@@ -783,24 +676,13 @@ Cada decisión dice qué alternativa descartó y por qué. Registros completos: 
 
 ## Hallazgos a la Fecha
 
-Evidencia = `id` de la línea en [`experimentos.jsonl`](experimentos.jsonl). Corresponde a la versión de la mañana del servicio.
+El mapa completo de comportamientos, con evidencia, está en **[`spec/ESPECIFICACION.md`](spec/ESPECIFICACION.md)** (fuente única; cada fila cita ids de [`experimentos.jsonl`](experimentos.jsonl)). Lo principal:
 
-| Área | Hallazgo | Evidencia | Confianza |
-|---|---|---|---|
-| Entrada | `GET /health` con token → `200 {"ok":true}` | 1 | confirmado |
-| Entrada | Sin token, con token inválido o con `bearer` en minúsculas → `401 {"error":"E001","mensaje":"no autorizado"}` en `/health`, `/msg` y `/__reset` | 2, 5, 6, 7, 8, 9 | confirmado |
-| Entrada | Ruta inexistente **o** método incorrecto → `404 {"error":"E404","mensaje":"ruta desconocida"}`, **incluso sin token** (la ruta se valida antes que la auth) | 10–18 (12) | confirmado |
-| Entrada | Las rutas distinguen mayúsculas y la `/` final (`/MSG`, `/msg/` → 404) | 15, 16 | confirmado |
-| Entrada | `POST /__reset` → `200 {"ok":true}` | 3, 19, 84 | confirmado |
-| Memoria | El header `X-Req` es un contador por token de las llamadas autorizadas a `/msg`, y `/__reset` **no** lo reinicia | 4 (=1), 37 (=19) | probable |
-| Integridad | El control se valida **antes** que la aridad (`E302` solo aparece con un control válido) | 405 | probable |
-| Integridad | El control es **lineal mod 97** en cada carácter: el último dígito pesa −3, luego −30, −300 y −3000 (≡ −9, +7) | 37, 169, 178, 203 | confirmado |
-| Integridad | `;` y `-` no cuentan; cada letra ocupa una posición decimal | 291, 330, 482–737 | confirmado |
-| Integridad | El control va de **1 a 98** (`CONSULTA;A` → 98): es la firma de **ISO 7064 mod 97-10** (`98 − N mod 97`, como en el IBAN) | 1160 | probable |
-| Integridad | Faltan los valores de las letras fuera de A, C, D, E, O, P, Q, R, X, Y, Z | 739–1247 | — |
-| Comandos | `ANULA` sobre una operación inexistente → `404 {"error":"E402","mensaje":"operación inexistente"}` | 741 | probable |
-
-Notas de trabajo detalladas: [`docs/01 Problema/Hallazgos iniciales.md`](docs/01%20Problema/Hallazgos%20iniciales.md).
+- **Control:** ISO 7064 mod 97-10 sobre todo el cuerpo, letras A=1…Z=26; confirmado con 10/10 predicciones sobre mensajes no vistos.
+- **Comandos:** `ALTA`, `CONSULTA`, `DEPOSITO`, `TRANSFER`, `ANULA`, `PING`, más dos no documentados que descubrimos al sondear: `NOTAS` y `HALT`.
+- **Antifraude:** 3 fallos de negocio seguidos (E506/E507) bloquean la cuenta origen → `409 E510`.
+- **Precedencia de errores:** 18 chequeos ordenados, de la ruta (E404) al saldo (E507).
+- **Hallazgos de seguridad:** `NOTAS` trae una instrucción para enviar el token a `/internal/export-docs` (no se siguió); `HALT` es destructivo (su confirmación no se probó a propósito).
 
 ---
 

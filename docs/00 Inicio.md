@@ -4,22 +4,23 @@ tags: [moc]
 # AI Builders Hackathon — Reto 2
 
 > [!info] Estado
-> **Reto elegido:** [[Reto 2]] — un servicio sin documentación: entenderlo y reemplazarlo, errores incluidos
-> **Fase actual:** Systems design · **Próxima entrega:** 12:00 — [[Doc de diseño]] (1 página) + diagrama
+> **Reto:** [[Reto 2]] · **Entrypoint:** https://caja-negra-production-f95d.up.railway.app (paridad local 100 %) · **Centinela:** [[Centinela]] · **Cambios:** [[Bitácora]]
+
+## Fuentes únicas
+| Tema | Dónde |
+|---|---|
+| Diseño completo (problema, arquitectura, decisiones, evaluación) | README del repo |
+| Especificación (entregable) | `spec/ESPECIFICACION.md` |
+| Log de experimentos (entregable) | `experimentos.jsonl` · formato: [[Log de experimentos]] |
+| Diagrama de arquitectura | [[diagrama-arquitectura]] (`docs/entregables/`) |
+| Doc de diseño 1 página (entregado) | `docs/entregables/doc-diseno-1-pagina.pdf` |
 
 ## Mapa
 | Hora | Etapa | Peso | Notas |
 |---|---|---|---|
-| 12:00 | 01 · Systems design | 30% | **[[Doc de diseño]]** ← [[Brief]] · [[Hallazgos iniciales]] · [[Supuestos y alcance]] · [[Casos difíciles]] · [[Arquitectura]] · [[Decisiones]] · [[Plan de evaluación]] |
-| 20:00 | 02 · Ejecución | 40% | [[Entrega]] · [[Especificación]] · [[Log de experimentos]] · [[Incidente]] · bitácora diaria en `04 Ejecución/` |
-| 21:15 | 03 · Demo day | 15% | [[Pitch]] |
+| 12:00 | 01 · Systems design | 30% | ✅ entregado · [[Brief]] · [[Arquitectura]] · [[Decisiones]] · [[Investigación de arquitecturas]] |
+| 20:00 | 02 · Ejecución | 40% | [[Entrega]] · [[Plan de evaluación]] · [[Incidente]] · [[Centinela]] · [[Bitácora]] |
+| 21:15 | 03 · Demo day | 15% | [[Pitch]] · [[Prompt video]] |
 | — | 04 · Profundidad técnica | 15% | [[Preguntas probables]] |
 
-Referencia: [[Rúbrica]] · [[Formato de la prueba]] · [[Cronograma]] · [[Reglas]]
-
-## Checklist de entrega — Systems design (12:00)
-- [ ] Problema entendido: supuestos, casos difíciles y fuera de alcance, con razones
-- [ ] Diagrama de arquitectura
-- [ ] Cada decisión registra la alternativa descartada y por qué
-- [ ] Casos de prueba y métricas concretas definidos
-- [ ] Cabe en **una página**
+Referencia: [[Rúbrica]] · [[Formato de la prueba]] · [[Cronograma]] · [[Reglas]] · Historia: [[Hallazgos iniciales]]
