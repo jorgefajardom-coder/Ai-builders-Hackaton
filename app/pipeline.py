@@ -7,12 +7,16 @@ existencia E401/E402, negocio E506/E507]. Ruta (E404) y auth (E001) se resuelven
 """
 import json
 import re
+import sys
 
 from .checkval import control
 from .commands import REGISTRO
 from .errors import DomainError
 
 MAX_BODY = 8192                       # 8193 bytes → E101 (log 1384)
+# json.loads usa la pila de recursión de Python (límite 1000): un cuerpo de 8 KB admite hasta ~4096 niveles
+# de anidamiento, que JSON.parse del original acepta. Margen holgado sobre la pila ya usada.
+_PARSE_RECURSION = 10_000
 CONTROL_RE = re.compile(r"[0-9]{1,2}")  # solo ASCII; '014', '+14', '１４' → E201 (exp06)
 
 
@@ -42,10 +46,14 @@ def etapa_tamano(ctx):
 
 
 def etapa_json(ctx):
+    limite = sys.getrecursionlimit()
+    sys.setrecursionlimit(max(limite, _PARSE_RECURSION))
     try:
         ctx["data"] = json.loads(ctx["raw"].decode("utf-8"))   # clave duplicada: gana la última (como el original)
-    except (ValueError, UnicodeDecodeError):
+    except (ValueError, UnicodeDecodeError, RecursionError):
         raise DomainError("E100")
+    finally:
+        sys.setrecursionlimit(limite)
 
 
 def etapa_campo_m(ctx):

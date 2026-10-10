@@ -107,11 +107,12 @@ CASOS = {
 
 
 def send_original(step, seq):
-    hip = f"centinela: {step['hip']} (igual que el perfil v1)"
+    """Manda el paso al original SIN registrarlo: la línea se escribe tras comparar, con la conclusión verificada."""
+    hip = f"centinela: {step['hip']} (hipótesis: igual que el perfil v1)"
     req = step["request"]
     if isinstance(req, dict):
-        return prober.call(step["metodo"], step["ruta"], req, auth=step["auth"], seq=seq, hipotesis=hip)
-    return prober.call(step["metodo"], step["ruta"], raw=req, auth=step["auth"], seq=seq, hipotesis=hip)
+        return prober.call(step["metodo"], step["ruta"], req, auth=step["auth"], seq=seq, hipotesis=hip, log=False)
+    return prober.call(step["metodo"], step["ruta"], raw=req, auth=step["auth"], seq=seq, hipotesis=hip, log=False)
 
 
 def log_lines():
@@ -130,9 +131,20 @@ def vuelta():
             e = send_original(st, seq)
             n += 1
             if e.get("infra"):
-                continue   # rate limit de la infraestructura, no del servicio
-            status, body = replica.send(st)
-            if not (status == e["status"] and same(body, e["response"])):
+                e["conclusion"] = "no comparable: rate limit de la infraestructura, no del servicio"
+                prober.append(e)
+                continue
+            try:
+                status, body = replica.send(st)
+            except Exception as exc:   # el request ya llegó al original: la línea del log no puede perderse
+                e["conclusion"] = f"no comparable: el reemplazo falló ({exc!r})"
+                prober.append(e)
+                raise
+            igual = status == e["status"] and same(body, e["response"])
+            e["conclusion"] = ("confirmada: igual que el perfil v1" if igual else
+                               f"REFUTADA: el perfil v1 responde {status} {json.dumps(body, ensure_ascii=False)}")
+            prober.append(e)
+            if not igual:
                 diffs.append({"id": e["id"], "caso": nombre, "hip": st["hip"],
                               "request": st["request"] if not isinstance(st["request"], str) or len(st["request"]) < 80 else "(cuerpo grande)",
                               "original": [e["status"], e["response"]], "reemplazo": [status, body]})

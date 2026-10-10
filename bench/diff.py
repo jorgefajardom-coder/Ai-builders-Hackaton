@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import os
+import socket
 import sys
 import time
 import urllib.error
@@ -100,6 +101,14 @@ class InProcess:
         return (status, "") if step["metodo"] == "HEAD" else (status, body)   # el adaptador ASGI vacía el cuerpo en HEAD
 
 
+def _no_enviado(err):
+    """True solo si el request no llegó a salir (DNS o conexión rechazada): reintentarlo es seguro.
+    Un timeout o un corte a mitad pueden ocurrir después de que el servidor procesó un POST
+    (ALTA, DEPOSITO, TRANSFER…): reenviarlo lo ejecutaría dos veces."""
+    reason = getattr(err, "reason", err)
+    return isinstance(reason, (socket.gaierror, ConnectionRefusedError))
+
+
 class Remote:
     def __init__(self, url):
         load_env()
@@ -118,8 +127,8 @@ class Remote:
             except urllib.error.HTTPError as e:
                 status, text = e.code, e.read().decode()
                 break
-            except (urllib.error.URLError, TimeoutError, ConnectionError):
-                if attempt == 4:
+            except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+                if attempt == 4 or not _no_enviado(e):
                     raise
                 time.sleep(1 + attempt)
         try:
