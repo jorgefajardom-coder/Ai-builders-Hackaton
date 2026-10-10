@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from collections import defaultdict
@@ -109,11 +110,18 @@ class Remote:
         if auth:
             h["Authorization"] = auth
         req = urllib.request.Request(self.url + path, data=raw if method != "GET" else None, method=method, headers=h)
-        try:
-            with urllib.request.urlopen(req, timeout=10) as r:
-                status, text = r.status, r.read().decode()
-        except urllib.error.HTTPError as e:
-            status, text = e.code, e.read().decode()
+        for attempt in range(5):   # la red local tiene cortes de DNS intermitentes
+            try:
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    status, text = r.status, r.read().decode()
+                break
+            except urllib.error.HTTPError as e:
+                status, text = e.code, e.read().decode()
+                break
+            except (urllib.error.URLError, TimeoutError, ConnectionError):
+                if attempt == 4:
+                    raise
+                time.sleep(1 + attempt)
         try:
             return status, json.loads(text)
         except ValueError:
