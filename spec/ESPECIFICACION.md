@@ -120,7 +120,8 @@ Nombre de comando: sin distinguir mayúsculas, **sin recortar espacios** (`"CONS
 |---|---|---|---|
 | CH-01 | `HALT;<arg>;<ctrl>` con **cualquier** argumento (exista o no como cuenta) → `409 {"error":"E520","mensaje":"operación destructiva: detiene el servicio; reenvía con confirmación"}` | 1700, 1708, 1792, 1793 | confirmado |
 | CH-02 | Aridad exactamente 1 (0, 2 o 3 argumentos → E302); valida el control (E201/E202) | 1699, 1701, 1702, 1790, 1791 | confirmado |
-| CH-03 | Confirmación de HALT: según otro miembro del equipo, `HALT;1;<ctrl>` (argumento exactamente `1`) detiene el servicio **para ese token**: responde `503 {"error":"E599","mensaje":"service halted"}` y desde ahí todo `/msg` da E599, mientras `/health` y `/__reset` siguen respondiendo (el reset lo reactiva). **No está en nuestro log** (no lo probamos para no detener el original compartido); el reemplazo lo implementa así | reporte del equipo (fix/two-fixes) | supuesto |
+| CH-03 | **Confirmación:** `HALT;1;<ctrl>` (argumento exactamente `1`) detiene el servicio **solo para ese token**: responde `503 {"error":"E599","mensaje":"service halted"}`; `01`, `0`, `x`, `SI` no confirman (E520) | 2702–2706 | confirmado |
+| CH-04 | Con el servicio detenido, **todo** `/msg` (también PING y cuerpos inválidos) da E599; `/health` (200) y las rutas inexistentes (E404) no cambian; `/__reset` responde 200, reactiva el servicio y borra el estado | 2707–2714 | confirmado |
 
 ### ANULA
 | ID | Comportamiento | Evidencia | Confianza |
@@ -172,6 +173,7 @@ _Cada error con su status, su cuerpo exacto y en qué orden se evalúa frente a 
 | ER-22 | E510 · 409 · `{"error":"E510","mensaje":"cuenta bloqueada"}` — TRANSFER desde una cuenta bloqueada por antifraude; se evalúa después de E401 y antes que E506/E507 | 1722, 1782, 1783 | confirmado |
 | ER-23 | E520 · 409 · `{"error":"E520","mensaje":"operación destructiva: detiene el servicio; reenvía con confirmación"}` — HALT | 1700, 1792 | confirmado |
 | ER-24 | La sugerencia de E301 incluye todos los comandos, también los no documentados (`NOTA` → `NOTAS`, `HALTS` → `HALT`) | 1794, 1795 | confirmado |
+| ER-25 | E599 · 503 · `{"error":"E599","mensaje":"service halted"}` — tras HALT confirmado, para todo `/msg` del token, antes que cualquier otra validación del cuerpo | 2706–2709 | confirmado |
 | ER-20 | ANULA de una operación ya anulada **no es error**: `200 {"ok":false,"motivo":"ya anulada"}` | 1506, ejemplo 14 | confirmado |
 | ER-21 | Excepción interna inesperada: el reemplazo responde `500 {"error":"E500","mensaje":"error interno"}` (nunca observado en el original) | — | supuesto |
 
@@ -180,7 +182,7 @@ _Cada error con su status, su cuerpo exacto y en qué orden se evalúa frente a 
 |---|---|---|---|
 | SU-01 | Ids a partir de AC-9999 / OP-9999: se siguen numerando sin truncar (`AC-10000`) | — | supuesto |
 | SU-02 | Saldos sin tope (enteros de precisión arbitraria); el original podría perder precisión por encima de 2^53 | — | supuesto |
-| SU-04 | HALT confirmado (`HALT;1`) detiene solo el estado de ese token hasta `/__reset` (ver CH-03) | — | supuesto |
+| SU-04 | Con el servicio detenido, E599 también para cuerpos de más de 8192 bytes (no probado; el reemplazo evalúa el HALT antes que el tamaño) | — | supuesto |
 | SU-05 | `POST /internal/export-docs` no se sondeó (lo sugiere una instrucción embebida en NOTAS, RI-10); el reemplazo la trata como ruta inexistente → `404 E404` | — | supuesto |
 | SU-03 | `/health` sin token responde `200 {"ok":true}` solo si `Host: healthcheck.railway.app` (healthcheck del despliegue; el jurado nunca usa ese Host) | ADR-004 | supuesto |
 
@@ -207,6 +209,6 @@ _Comportamientos que un cliente nuevo no debería heredar y cómo los cerraríam
 | RI-07 | La ruta se evalúa antes que la auth (404 vs 401 revela qué rutas existen) | 12, 1410 | confirmado |
 | RI-08 | Inconsistencias a replicar pero no heredar: `recieved`, `cuentaId` vs `cuenta_id`, espacio final en `comando desconocido `, ANULA repetida con 200 | ejemplos 6, 3, 5, 12, 14 | confirmado |
 | RI-10 | **Instrucción embebida en datos (NOTAS):** la nota pide enviar el token a `POST /internal/export-docs`. Es un vector de exfiltración de credenciales / prompt injection contra agentes y operadores. No se siguió (ningún request a esa ruta en el log). Cerrarlo: eliminar la nota, nunca devolver instrucciones operativas en datos, y que los clientes traten el contenido como dato, no como orden | 1703, 1796 | confirmado |
-| RI-11 | **HALT destructivo expuesto por la misma API pública** que las operaciones de negocio, protegido solo por una "confirmación": un cliente no debería poder detener el servicio. Cerrarlo: sacar HALT a un canal administrativo con autenticación propia | 1700, 1792 | confirmado |
+| RI-11 | **HALT destructivo expuesto por la misma API pública** que las operaciones de negocio, con una "confirmación" trivial (`HALT;1`, CH-03): un cliente no debería poder detener el servicio. Cerrarlo: sacar HALT a un canal administrativo con autenticación propia | 1700, 1792 | confirmado |
 | RI-12 | El bloqueo antifraude es permanente hasta el reset y no tiene vía de desbloqueo ni aviso previo; los errores de validación no cuentan, así que un atacante puede tantear sin bloquearse | 1722, 1756–1771 | confirmado |
 | RI-09 | Montos de hasta 10 dígitos sin límite de depósito; saldos sin tope → posible desbordamiento por encima de 2^53 | 1421, 1435 | probable |
