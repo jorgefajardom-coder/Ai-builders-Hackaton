@@ -1,0 +1,10 @@
+# El servicio solo necesita app/, requirements.txt, railway.json y .python-version.
+.env
+.env.*
+docs/
+site/
+bench/
+tools/
+material/
+experimentos.jsonl
+.github/
