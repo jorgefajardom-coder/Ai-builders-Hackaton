@@ -45,8 +45,11 @@ def handle(method, path, headers, raw):
     if destino == "reset":
         STORE.reset(token)
         return 200, {"ok": True}
+    estado = STORE.get(token)
+    if estado.halted:                 # HALT confirmado: /health y /__reset siguen vivos, el resto no
+        return _error("E599")
     try:
-        return procesar_msg(raw, STORE.get(token), PERFIL.orden_msg)
+        return procesar_msg(raw, estado, PERFIL.orden_msg)
     except DomainError as e:
         return _error(e.code, e.extra)
 

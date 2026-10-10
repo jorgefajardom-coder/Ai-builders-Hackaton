@@ -32,6 +32,7 @@ CATALOG_V1 = {
     "E507": ErrorSpec(422, "saldo insuficiente", "ejemplo 16, log 1537"),
     "E510": ErrorSpec(409, "cuenta bloqueada", "log 1722, 1751, 1782 — antifraude"),
     "E520": ErrorSpec(409, "operación destructiva: detiene el servicio; reenvía con confirmación", "log 1700, 1792 — HALT"),
+    "E599": ErrorSpec(503, "service halted", "HALT confirmado con control 1"),
 }
 
 

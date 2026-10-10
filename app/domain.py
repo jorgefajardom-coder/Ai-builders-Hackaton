@@ -26,6 +26,7 @@ class Estado:
     bloqueadas: set = field(default_factory=set)         # cuentas que ya no pueden transferir (E510)
     seq_cuenta: int = 0
     seq_operacion: int = 0
+    halted: bool = False                              # HALT confirmado (control "1") → E599 en /msg
 
     def nueva_cuenta_id(self) -> str:
         self.seq_cuenta += 1

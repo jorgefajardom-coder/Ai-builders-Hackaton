@@ -72,7 +72,10 @@ def deposito(estado, args):
     monto = _monto(args[1])
     destino = _cuenta(estado, args[0])               # sin límite de negocio en depósitos
     destino["saldo"] += monto
-    return _registrar(estado, "DEPOSITO", None, args[0], monto)
+    resultado = _registrar(estado, "DEPOSITO", None, args[0], monto)
+    estado.bloqueadas.discard(args[0])               # un depósito exitoso desbloquea la cuenta
+    estado.fallos_seguidos[args[0]] = 0
+    return resultado
 
 
 def _fallo_negocio(estado, cuenta_id, code):
@@ -117,8 +120,11 @@ def notas(estado, args):
 
 @comando("HALT", 1)
 def halt(estado, args):
-    # Con cualquier argumento pide confirmación (log 1700, 1792, 1793). La variante "confirmada" no se probó
-    # a propósito (podría detener el original compartido): el reemplazo nunca se detiene (supuesto SU-04).
+    # Con cualquier argumento pide confirmación (log 1700, 1792, 1793). El control "1" exacto es la
+    # confirmación: detiene el servicio para ese token y responde E599 ('01', '0', 'x' no confirman).
+    if args[0] == "1":
+        estado.halted = True
+        raise DomainError("E599")
     raise DomainError("E520")
 
 
