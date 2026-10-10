@@ -10,7 +10,7 @@ tags: [moc]
 ## Mapa
 | Hora | Etapa | Peso | Notas |
 |---|---|---|---|
-| 12:00 | 01 · Systems design | 30% | **[[Doc de diseño]]** ← [[Brief]] · [[Supuestos y alcance]] · [[Casos difíciles]] · [[Arquitectura]] · [[Decisiones]] · [[Plan de evaluación]] |
+| 12:00 | 01 · Systems design | 30% | **[[Doc de diseño]]** ← [[Brief]] · [[Hallazgos iniciales]] · [[Supuestos y alcance]] · [[Casos difíciles]] · [[Arquitectura]] · [[Decisiones]] · [[Plan de evaluación]] |
 | 20:00 | 02 · Ejecución | 40% | [[Entrega]] · [[Especificación]] · [[Log de experimentos]] · [[Incidente]] · bitácora diaria en `04 Ejecución/` |
 | 21:15 | 03 · Demo day | 15% | [[Pitch]] |
 | — | 04 · Profundidad técnica | 15% | [[Preguntas probables]] |
