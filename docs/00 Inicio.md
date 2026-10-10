@@ -1,16 +1,17 @@
 ---
 tags: [moc]
 ---
-# AI Builders Hackathon
+# AI Builders Hackathon — Reto 2
 
 > [!info] Estado
+> **Reto elegido:** [[Reto 2]] — un servicio sin documentación: entenderlo y reemplazarlo, errores incluidos
 > **Fase actual:** Systems design · **Próxima entrega:** 12:00 — [[Doc de diseño]] (1 página) + diagrama
 
 ## Mapa
 | Hora | Etapa | Peso | Notas |
 |---|---|---|---|
 | 12:00 | 01 · Systems design | 30% | **[[Doc de diseño]]** ← [[Brief]] · [[Supuestos y alcance]] · [[Casos difíciles]] · [[Arquitectura]] · [[Decisiones]] · [[Plan de evaluación]] |
-| 20:00 | 02 · Ejecución | 40% | [[Entrega]] · [[Incidente]] · [[Log de experimentos]] · bitácora diaria en `04 Ejecución/` |
+| 20:00 | 02 · Ejecución | 40% | [[Entrega]] · [[Especificación]] · [[Log de experimentos]] · [[Incidente]] · bitácora diaria en `04 Ejecución/` |
 | 21:15 | 03 · Demo day | 15% | [[Pitch]] |
 | — | 04 · Profundidad técnica | 15% | [[Preguntas probables]] |
 
