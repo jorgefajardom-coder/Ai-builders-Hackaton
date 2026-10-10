@@ -5,6 +5,7 @@ y nunca contiene credenciales (solo una etiqueta de qué auth se usó).
 """
 import json
 import os
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -28,6 +29,14 @@ _load_env()
 BASE = os.environ["CAJA_URL"].rstrip("/")
 TOKEN = os.environ["CAJA_TOKEN"]
 _last = 0.0
+
+
+def _no_enviado(err):
+    """True solo si el request no llegó a salir (DNS o conexión rechazada): reintentarlo es seguro.
+    Un timeout o un corte a mitad pueden ocurrir después de que el servidor procesó un POST
+    (ALTA, DEPOSITO, TRANSFER…): reenviarlo lo ejecutaría dos veces."""
+    reason = getattr(err, "reason", err)
+    return isinstance(reason, (socket.gaierror, ConnectionRefusedError))
 
 
 def _next_id():
@@ -81,8 +90,8 @@ def call(method, path, body=None, *, raw=None, auth="propio", headers=None,
         except urllib.error.HTTPError as e:
             status, rh, text = e.code, e.headers, e.read().decode("utf-8", "replace")
             break
-        except (urllib.error.URLError, TimeoutError, ConnectionError):
-            if attempt == 3:
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if attempt == 3 or not _no_enviado(e):
                 raise
             time.sleep(1 + attempt)
     _last = time.monotonic()
@@ -115,9 +124,15 @@ def call(method, path, body=None, *, raw=None, auth="propio", headers=None,
     if rh.get("X-Frontier-Infra"):
         entry["infra"] = rh.get("X-Frontier-Infra")
     if log:
-        entry["id"] = _next_id()
-        with LOG.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        append(entry)
+    return entry
+
+
+def append(entry):
+    """Asigna id y escribe la línea en el log (para quien llama a `call(..., log=False)` y completa la conclusión)."""
+    entry["id"] = _next_id()
+    with LOG.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return entry
 
 

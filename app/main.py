@@ -9,7 +9,7 @@ import time
 
 from . import config
 from .errors import DomainError
-from .pipeline import procesar_msg
+from .pipeline import MAX_BODY, procesar_msg
 from .profiles import cargar
 from .store import InMemoryStore
 
@@ -52,10 +52,16 @@ def handle(method, path, headers, raw):
 
 
 async def _read_body(receive):
-    chunks = []
+    """Guarda como mucho MAX_BODY + 1 bytes (basta para dar E101) y descarta el resto sin acumularlo:
+    un cuerpo enorme, con o sin token, no debe inflar la memoria del proceso."""
+    chunks, size = [], 0
     while True:
         msg = await receive()
-        chunks.append(msg.get("body", b""))
+        chunk = msg.get("body", b"")
+        if size <= MAX_BODY:
+            chunk = chunk[:MAX_BODY + 1 - size]
+            chunks.append(chunk)
+            size += len(chunk)
         if not msg.get("more_body"):
             return b"".join(chunks)
 
